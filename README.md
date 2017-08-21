@@ -26,8 +26,8 @@ This package requires Java 8 (to run) and Ant (to compile); other supporting lib
 
 ## Compiling Chordalysis
 ```
-git clone https://github.com/fpetitjean/Chordalysis
-cd Chordalyis
+git clone https://github.com/fpetitjean/HierarchicalDirichelProcessEstimation HDP
+cd HDP
 ant compile
 ``` 
 ## Getting a cross-platform jar
@@ -39,7 +39,7 @@ Note that `Xmx1g` means that you are allowing the Java Virtual Machine to use 1G
 ## Running Chordalysis in command line
 The `compile` command creates all `.class` files in the `bin/` directory. To execute the demos, simply run:
 ```
-java -Xmx1g -classpath bin:lib/*.jar testing.Level1TestMain
+java -Xmx1g -classpath bin:lib/commons-math3-3.6.1.jar:lib/junit-4.12.jar testing.Test1LevelMain
 ```
 This will run a simple example first sampling data from a known tree and then learning the probability distributions. 
 
