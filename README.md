@@ -14,7 +14,7 @@ When using this repository, please cite:
   title = {Accurate parameter estimation for Bayesian Network Classifiers using Hierarchical Dirichlet Processes},
   booktitle = {arxiv},
   year = 2017
-  url = {...}
+  url = {https://arxiv.org/abs/1708.07581}
 }
 ```
 
