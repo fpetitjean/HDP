@@ -255,12 +255,12 @@ public class ProbabilityNode {
 
 		if (pkAccumulated == null) {
 			pkAccumulated = new double[nk.length];
+			nPkAccumulated = 0;
 		}
 		double sum = 0.0;
 		for (int k = 0; k < pkAccumulated.length; k++) {
 			pkAccumulated[k] = pkAccumulated[k] * nPkAccumulated + pk[k];
-			nPkAccumulated++;
-			pkAccumulated[k] /= nPkAccumulated;
+			pkAccumulated[k] /= (nPkAccumulated+1);
 			if (pkAccumulated[k] == 0)
 				pkAccumulated[k] = 1e-75;
 			sum += pkAccumulated[k];
@@ -268,6 +268,7 @@ public class ProbabilityNode {
 		for (int k = 0; k < pkAccumulated.length; k++) {
 			pkAccumulated[k] /= sum;
 		}
+		nPkAccumulated++;
 
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
