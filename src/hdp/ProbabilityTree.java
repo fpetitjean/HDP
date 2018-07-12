@@ -83,7 +83,7 @@ public class ProbabilityTree {
 		concentrationsToSample = new ArrayList<>();
 		switch (concentrationTyingStrategy) {
 		case NONE:
-			for (int depth = getNXs(); depth >= 0; depth--) {
+			for (int depth = getNXs(); depth > 0; depth--) {
 				//tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				for (ProbabilityNode node : nodes) {
@@ -169,9 +169,9 @@ public class ProbabilityTree {
 			
 			// sample c
 			if ((iter + frequencySamplingC / 2) % frequencySamplingC == 0) {
-				// sample tks once
 				for (Concentration c:concentrationsToSample) {
 					c.sample(rng);
+					
 				}
 			}
 
@@ -181,8 +181,6 @@ public class ProbabilityTree {
 			
 		}
 		double score = logScoreTree();
-//		System.out.println(root.printPksRecursively(""));
-		// root.finishedOptimizing();
 		return score;
 	}
 
