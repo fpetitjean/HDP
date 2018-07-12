@@ -115,7 +115,7 @@ public class ProbabilityTree {
 			}
 			break;
 		case LEVEL:
-			for (int depth = getNXs(); depth > 0; depth--) {
+			for (int depth = getNXs(); depth >= 0; depth--) {
 				//tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				Concentration c = new Concentration();
