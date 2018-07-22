@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.apache.commons.math3.util.FastMath;
 
 import tools.MathUtils;
 
@@ -599,4 +600,88 @@ public class ProbabilityNode {
 		return tree.nValuesConditionedVariable;
 	}
 
+	public void computeProbabilitiesInLogScale() {
+
+		if (pk == null) {
+			pk = new double[nk.length];
+		}
+		double concentration = getConcentration();
+		double sum = 0.0;
+		for (int k = 0; k < pk.length; k++) {
+//			double parentProb=(parent!=null)?parent.pk[k]:1.0/pk.length;//uniform parent if root node
+
+			double parentProb = (this.parent != null) ? FastMath.exp(this.parent.pk[k]) : 1.0 / pk.length;
+
+			pk[k] = (nk[k]) / (marginal_nk + concentration)
+					+ (concentration) * parentProb / (marginal_nk + concentration);
+			sum += pk[k];
+		}
+
+		// normalize
+		for (int k = 0; k < pk.length; k++) {
+			pk[k] /= sum;
+		}
+
+		// convert into log space
+		for (int k = 0; k < pk.length; k++) {
+			pk[k] = FastMath.log(pk[k]);
+		}
+
+		if (children != null) {
+			for (int c = 0; c < children.length; c++) {
+				if (children[c] != null) {
+					children[c].computeProbabilitiesInLogScale();
+				}
+			}
+		}
+	}
+
+	/**
+	 * This method accumulates the pks so that the final result is averaged over
+	 * several successive iterations of the Gibbs sampling process in log space to
+	 * avoid underflow
+	 */
+	protected void recordProbabilitiesInLogScale() {
+		// in this method, pkAccumulated stores the log sum
+		if (this.pkAccumulated == null) {
+			pkAccumulated = new double[nk.length];
+		}
+
+		for (int k = 0; k < pkAccumulated.length; k++) {
+
+			if (nPkAccumulated == 0) {
+				pkAccumulated[k] = this.pk[k];
+			} else {
+				pkAccumulated[k] = MathUtils.logadd(pkAccumulated[k], pk[k]);
+			}
+		}
+
+		if (children != null) {
+			for (int c = 0; c < children.length; c++) {
+				if (children[c] != null) {
+					children[c].recordProbabilitiesInLogScale();
+				}
+			}
+		}
+	}
+	
+	public void averagePkAccumulatedProbabilitiesInLogSpace() {
+		double sum = 0;
+		for (int k = 0; k < this.pkAccumulated.length; k++) {
+			pkAccumulated[k] = FastMath.exp(pkAccumulated[k]);
+			sum += pkAccumulated[k];
+		}
+
+		for (int k = 0; k < this.pkAccumulated.length; k++) {
+			pkAccumulated[k] /= sum;
+		}
+
+		if (children != null) {
+			for (int c = 0; c < children.length; c++) {
+				if (children[c] != null) {
+					children[c].averagePkAccumulatedProbabilitiesInLogSpace();
+				}
+			}
+		}
+	}
 }
