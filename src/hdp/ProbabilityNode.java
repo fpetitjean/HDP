@@ -645,6 +645,7 @@ public class ProbabilityNode {
 		// in this method, pkAccumulated stores the log sum
 		if (this.pkAccumulated == null) {
 			pkAccumulated = new double[nk.length];
+			nPkAccumulated = 0;
 		}
 
 		for (int k = 0; k < pkAccumulated.length; k++) {
@@ -655,6 +656,7 @@ public class ProbabilityNode {
 				pkAccumulated[k] = MathUtils.logadd(pkAccumulated[k], pk[k]);
 			}
 		}
+		nPkAccumulated ++;
 
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
