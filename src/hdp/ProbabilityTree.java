@@ -176,10 +176,14 @@ public class ProbabilityTree {
 			}
 
 			if (iter >= nBurnIn ) {
-				this.recordAndAverageProbabilities();
+//				this.recordAndAverageProbabilities();
+				this.recordProbabilitiesInLogScale();
 			}
 			
 		}
+		
+		root.averagePkAccumulatedProbabilitiesInLogSpace();
+		
 		double score = logScoreTree();
 		return score;
 	}
@@ -370,6 +374,12 @@ public class ProbabilityTree {
 		} else if (tyingStrategy == 3) {
 			this.concentrationTyingStrategy = TyingStrategy.SINGLE;
 		} 
+	}
+	
+	/** averaged in log space **/
+	private void recordProbabilitiesInLogScale() {
+		root.computeProbabilitiesInLogScale();
+		root.recordProbabilitiesInLogScale();
 	}
 	
 }
