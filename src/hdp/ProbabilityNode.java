@@ -668,14 +668,10 @@ public class ProbabilityNode {
 	}
 	
 	public void averagePkAccumulatedProbabilitiesInLogSpace() {
-		double sum = 0;
+		MathUtils.normalizeInLogDomain(pkAccumulated);
+		
 		for (int k = 0; k < this.pkAccumulated.length; k++) {
 			pkAccumulated[k] = FastMath.exp(pkAccumulated[k]);
-			sum += pkAccumulated[k];
-		}
-
-		for (int k = 0; k < this.pkAccumulated.length; k++) {
-			pkAccumulated[k] /= sum;
 		}
 
 		if (children != null) {
