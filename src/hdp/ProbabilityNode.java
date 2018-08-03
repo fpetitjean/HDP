@@ -216,39 +216,6 @@ public class ProbabilityNode {
 	}
 
 	/**
-	 * This function computes the values of the smoothed conditional probabilities as a function of
-	 * (nk,tk,c,d) and of the parent probability. <br/>
-	 * p_k = ( ( nk - tk*d ) / (N + c) ) ) + ( ( c + T*d ) / (N + c) ) ) * p^{parent}_k
-	 * 
-	 * @see <a href=
-	 *      "http://topicmodels.org/2014/11/13/training-a-pitman-yor-process-tree-with-observed-data-at-the-leaves-part-2/">
-	 *      topicmodels.org</a> (Equation 1)
-	 */
-	public void computeProbabilities() {
-		if (pk == null) {
-			pk = new double[nk.length];
-		}
-		double concentration = getConcentration();
-		double sum = 0.0;
-		for (int k = 0; k < pk.length; k++) {
-			double parentProb=(parent!=null)?parent.pk[k]:1.0/pk.length;//uniform parent if root node
-			pk[k] = (nk[k]) / (marginal_nk + concentration) + (concentration )
-						* parentProb/ (marginal_nk + concentration);
-			sum += pk[k];
-		}
-		for (int k = 0; k < pk.length; k++) {
-			pk[k] /= sum;
-		}
-		if (children != null) {
-			for (int c = 0; c < children.length; c++) {
-				if (children[c] != null) {
-					children[c].computeProbabilities();
-				}
-			}
-		}
-	}
-
-	/**
 	 * This method accumulates the pks so that the final result is averaged over several successive
 	 * iterations of the Gibbs sampling process
 	 */
@@ -600,7 +567,16 @@ public class ProbabilityNode {
 		return tree.nValuesConditionedVariable;
 	}
 
-	public void computeProbabilitiesInLogScale() {
+	/**
+	 * This function computes the values of the smoothed conditional probabilities as a function of
+	 * (nk,tk,c,d) and of the parent probability. <br/>
+	 * p_k = ( ( nk - tk*d ) / (N + c) ) ) + ( ( c + T*d ) / (N + c) ) ) * p^{parent}_k
+	 * 
+	 * @see <a href=
+	 *      "http://topicmodels.org/2014/11/13/training-a-pitman-yor-process-tree-with-observed-data-at-the-leaves-part-2/">
+	 *      topicmodels.org</a> (Equation 1)
+	 */
+	public void computeProbabilities() {
 
 		if (pk == null) {
 			pk = new double[nk.length];
@@ -630,7 +606,7 @@ public class ProbabilityNode {
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
-					children[c].computeProbabilitiesInLogScale();
+					children[c].computeProbabilities();
 				}
 			}
 		}
@@ -641,7 +617,7 @@ public class ProbabilityNode {
 	 * several successive iterations of the Gibbs sampling process in log space to
 	 * avoid underflow
 	 */
-	protected void recordProbabilitiesInLogScale() {
+	protected void addRecordedProbabilities() {
 		// in this method, pkAccumulated stores the log sum
 		if (this.pkAccumulated == null) {
 			pkAccumulated = new double[nk.length];
@@ -661,13 +637,13 @@ public class ProbabilityNode {
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
-					children[c].recordProbabilitiesInLogScale();
+					children[c].addRecordedProbabilities();
 				}
 			}
 		}
 	}
 	
-	public void averagePkAccumulatedProbabilitiesInLogSpace() {
+	public void averageAccumulatedProbabilities() {
 		MathUtils.normalizeInLogDomain(pkAccumulated);
 		
 		for (int k = 0; k < this.pkAccumulated.length; k++) {
@@ -677,7 +653,7 @@ public class ProbabilityNode {
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
-					children[c].averagePkAccumulatedProbabilitiesInLogSpace();
+					children[c].averageAccumulatedProbabilities();
 				}
 			}
 		}

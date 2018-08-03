@@ -1,51 +1,65 @@
 package testing;
 
-import hdp.ProbabilityTree;
-
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.apache.commons.math3.random.RandomDataGenerator;
+
+import hdp.ProbabilityTree;
 
 public class Test1Level {
 
-	@Test
-	public void testLearning1LevelTree() {
+	public static void main(String...args) throws NoSuchAlgorithmException {
 		int nDataPoints = 10000;
 		int nValuesY = 2;
 		int[] arities = new int[] {5 };
-		String str = "Junit is working fine";
-		Assert.assertEquals("Junit is working fine", str);
-
-		ProbabilityTree tree = new ProbabilityTree(nValuesY, arities,true);
-		tree.createSyntheticTree();
-		System.out.println("Synth tree created as follows");
-		System.out.println(tree.printPks());
-		System.out.println("Generating data");
-		int[][] sampledData=null;
-		try {
-			sampledData = tree.sampleDataset(nDataPoints);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+		
+		//generating synthetic data
+		SecureRandom srg = SecureRandom.getInstance("SHA1PRNG");
+		RandomDataGenerator rdg = new RandomDataGenerator();
+		//generate random cpt for p(y|x_1)
+		double [][] cptY = new double[arities[0]][nValuesY];
+		
+		
+		for (int x1 = 0; x1 < cptY.length; x1++) {
+			double sumPk = 0.0;
+			for (int y = 0; y < cptY[x1].length; y++) {
+				cptY[x1][y] = rdg.nextGamma(1.0, 1.0);//Dirichlet
+				sumPk += cptY[x1][y];
+			}
+			for (int y = 0; y < cptY[x1].length; y++) {
+				cptY[x1][y] /= sumPk;
+			}
 		}
-		Assert.assertNotNull("Couldn't generate data",sampledData);
-		System.out.println("Data generated: 10 first lines look like");
-		for (int i = 0; i < Math.min(10, nDataPoints); i++) {
-			System.out.println("\t"+Arrays.toString(sampledData[i]));
+		
+		System.out.println("True p(y|x1)");
+		for (int x1 = 0; x1 < cptY.length; x1++) {
+			System.out.println("p(y | x1="+x1+") = "+Arrays.toString(cptY[x1]));
 		}
 		
-		System.out.println("Learning from sampled data");
+		int[][]data = new int[nDataPoints][2];//2 for 1 target, 1 x
+		for (int i = 0; i < data.length; i++) {
+			//choosing x_1 first uniformly
+			int x1 = srg.nextInt(arities[0]);
+			data[i][1] = x1;
+			
+			// now choosing y given values of xs
+			double rand = srg.nextDouble();
+			int chosenValue = 0;
+			double sumProba = cptY[x1][chosenValue];
+			while (rand > sumProba) {
+				chosenValue++;
+				sumProba += cptY[x1][chosenValue];
+			}
+			data[i][0] = chosenValue;
+		}
 		
-		int m_Iterations = 50000;
-		int m_Tying = 3;
-		ProbabilityTree learnedTree = new ProbabilityTree(nValuesY, arities, m_Iterations,m_Tying);
-		learnedTree.addDataset(sampledData);
-		
+		//now data is generated
+		ProbabilityTree tree = new ProbabilityTree();
+		tree.addDataset(data);
 		System.out.println("Learnt tree looks like...");
-		System.out.println(learnedTree.printTksAndNks());
-		System.out.println(learnedTree.printPks());
-		System.out.println(learnedTree.printFinalPks());
+		System.out.println(tree.printFinalPks());
 		
 		
 	}

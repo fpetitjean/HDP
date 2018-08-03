@@ -3,8 +3,7 @@ package hdp;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.HashMap;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomDataGenerator;
@@ -16,44 +15,48 @@ import tools.LogStirlingCache;
 import tools.MathUtils;
 
 public class ProbabilityTree {
-	
+
 	private int nIterGibbs;
 	private int nBurnIn;
 	private int frequencySamplingC;
-	
+
 	LogStirlingCache lgCache;
 	protected RandomGenerator rng = new MersenneTwister(3071980);
 	ProbabilityNode root;
-	ArrayList<Concentration>concentrationsToSample;
-	
+	ArrayList<Concentration> concentrationsToSample;
+	ArrayList<HashMap<String, Integer>> valueToIndex;
+	ArrayList<ArrayList<String>> indexToValue;
+
 	protected TyingStrategy concentrationTyingStrategy = TyingStrategy.LEVEL;
 
 	int nValuesConditionedVariable;
 
 	int[] nValuesContioningVariables;
 	protected int nDatapoints;
+	boolean createFullTree = false;
 
-	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree) {
-		init(nValuesConditionedVariable,nValuesConditioningVariables,createFullTree,5000,TyingStrategy.LEVEL,5);
+	public ProbabilityTree() {
+		init(false, 5000, TyingStrategy.LEVEL, 5);
+	}
+	public ProbabilityTree(boolean createFullTree) {
+		init(createFullTree, 5000, TyingStrategy.LEVEL, 5);
 	}
 
-	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, int m_Iterations, int m_Tying) {
+	public ProbabilityTree(int m_Iterations, int m_Tying) {
 		setConcentrationTyingStrategy(m_Tying);
-		init(nValuesConditionedVariable, nValuesConditioningVariables, false, m_Iterations, this.concentrationTyingStrategy, 5);
+		init(false, m_Iterations, this.concentrationTyingStrategy, 5);
 	}
-	
-	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree,int m_Iterations, TyingStrategy m_Tying,int frequencySamplingC) {
-		init(nValuesConditionedVariable,nValuesConditioningVariables,createFullTree,m_Iterations,m_Tying,frequencySamplingC);
+
+	public ProbabilityTree(boolean createFullTree, int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
+		init(createFullTree, m_Iterations, m_Tying, frequencySamplingC);
 	}
-	
-	protected void init(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree,int m_Iterations, TyingStrategy m_Tying,int frequencySamplingC){
-		this.nValuesConditionedVariable = nValuesConditionedVariable;
-		this.nValuesContioningVariables = nValuesConditioningVariables;
+
+	protected void init(boolean createFullTree, int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
 		this.nIterGibbs = m_Iterations;
 		setConcentrationTyingStrategy(m_Tying);
-		this.nBurnIn = Math.min(1000, nIterGibbs/10);
+		this.nBurnIn = Math.min(1000, nIterGibbs / 10);
 		this.frequencySamplingC = frequencySamplingC;
-		root = new ProbabilityNode(this, 0, createFullTree);
+		this.createFullTree = false;
 	}
 
 	public int getNXs() {
@@ -79,12 +82,12 @@ public class ProbabilityTree {
 	 * @return the log likelihood of the optimized tree
 	 */
 	public double smooth() {
-		//Creating and tying concentrations
+		// Creating and tying concentrations
 		concentrationsToSample = new ArrayList<>();
 		switch (concentrationTyingStrategy) {
 		case NONE:
 			for (int depth = getNXs(); depth > 0; depth--) {
-				//tying all children of a node
+				// tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				for (ProbabilityNode node : nodes) {
 					Concentration c = new Concentration();
@@ -92,21 +95,21 @@ public class ProbabilityTree {
 					node.c = c;
 					c.addNode(node);
 				}
-				
+
 			}
 			break;
 		case SAME_PARENT:
-			for (int depth = getNXs()-1; depth >= 0; depth--) {
-				//tying all children of a node
+			for (int depth = getNXs() - 1; depth >= 0; depth--) {
+				// tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				// System.out.println("depth="+depth+"\t"+nodes.size()+"
 				// nodes");
 				for (ProbabilityNode parent : nodes) {
-					//creating concentration
+					// creating concentration
 					Concentration c = new Concentration();
 					concentrationsToSample.add(c);
 					for (int child = 0; child < parent.children.length; child++) {
-						if(parent.children[child]!=null){
+						if (parent.children[child] != null) {
 							parent.children[child].c = c;
 							c.addNode(parent.children[child]);
 						}
@@ -116,7 +119,7 @@ public class ProbabilityTree {
 			break;
 		case LEVEL:
 			for (int depth = getNXs(); depth >= 0; depth--) {
-				//tying all children of a node
+				// tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				Concentration c = new Concentration();
 				concentrationsToSample.add(c);
@@ -124,32 +127,31 @@ public class ProbabilityTree {
 					node.c = c;
 					c.addNode(node);
 				}
-				
+
 			}
 			break;
 		case SINGLE:
 			Concentration c = new Concentration();
 			concentrationsToSample.add(c);
 			for (int depth = getNXs(); depth > 0; depth--) {
-				//tying all children of a node
+				// tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				for (ProbabilityNode node : nodes) {
 					node.c = c;
 					c.addNode(node);
 				}
-				
+
 			}
 			break;
 		default:
 			break;
 		}
-		
-		//setting concentration for root
+
+		// setting concentration for root
 		root.c = new Concentration();
-		
-		
+
 		root.prepareForSamplingTk();
-		
+
 		// Gibbs sampling of the tks, c and d
 		for (int iter = 0; iter < nIterGibbs; iter++) {
 //			System.out.println("Iter=" + iter + " score=" + logScoreTree());
@@ -166,37 +168,24 @@ public class ProbabilityTree {
 				}
 			}
 
-			
 			// sample c
 			if ((iter + frequencySamplingC / 2) % frequencySamplingC == 0) {
-				for (Concentration c:concentrationsToSample) {
+				for (Concentration c : concentrationsToSample) {
 					c.sample(rng);
-					
+
 				}
 			}
 
-			if (iter >= nBurnIn ) {
-//				this.recordAndAverageProbabilities();
-				this.recordProbabilitiesInLogScale();
+			if (iter >= nBurnIn) {
+				this.recordProbabilities();
 			}
-			
+
 		}
-		
-		root.averagePkAccumulatedProbabilitiesInLogSpace();
-		
+
+		root.averageAccumulatedProbabilities();
+
 		double score = logScoreTree();
 		return score;
-	}
-
-	private void recordAndAverageProbabilities() {
-		root.computeProbabilities();
-		root.recordAndAverageProbabilities();
-	}
-
-	public void createSyntheticTree() {
-		RandomDataGenerator rdg = new RandomDataGenerator(rng);
-		root.createSyntheticSubTree(rdg);
-		
 	}
 
 	private ArrayList<ProbabilityNode> getAllNodesAtDepth(int depth) {
@@ -204,15 +193,38 @@ public class ProbabilityTree {
 	}
 
 	/**
-	 * Add the observational data for the leaves
+	 * Add the observational data for the leaves Data is stored in a integer format
+	 * where each number represents a categorical value from 0 to (nValues - 1)
 	 * 
-	 * @param data
-	 *                a dataset; first value is the value for the
-	 *                conditioned variable; other values are for the
-	 *                conditioning variables (in the order given in the
-	 *                constructor)
+	 * @param data a dataset; first value is the value for the conditioned variable;
+	 *             other values are for the conditioning variables (in the order
+	 *             given in the constructor)
 	 */
 	public void addDataset(int[][] data) {
+		if (data == null || data.length == 0) {
+			throw new RuntimeException("Data is empty");
+		}
+		int nVariables = data[0].length;
+		int nConditioningVariables = nVariables-1;
+		int maxValueConditioned = 0;
+		nValuesContioningVariables = new int[nConditioningVariables];
+		
+		for (int i = 0; i < data.length; i++) {
+			if(data[i][0]>maxValueConditioned) {
+				maxValueConditioned = data[i][0];
+			}
+			for (int j = 1; j < data[i].length; j++) {
+				if(data[i][j]>nValuesContioningVariables[j-1]) {
+					nValuesContioningVariables[j-1]=data[i][j];
+				}
+			}
+		}
+		nValuesConditionedVariable = maxValueConditioned+1;//indexing from 0
+		for (int j = 0; j < nValuesContioningVariables.length; j++) {
+			nValuesContioningVariables[j]++;
+		}
+		root = new ProbabilityNode(this, 0, createFullTree);
+		
 		for (int[] datapoint : data) {
 			root.addObservation(datapoint, 1);
 		}
@@ -221,9 +233,62 @@ public class ProbabilityTree {
 		this.smooth();
 	}
 
-	public void addObservation(int[] datapoint) {
-		root.addObservation(datapoint, 1);
-		nDatapoints++;
+	/**
+	 * Add the observational data for the leaves Data is stored in a integer format
+	 * where each number represents a categorical value from 0 to (nValues - 1)
+	 * 
+	 * @param data a dataset; first value is the value for the conditioned variable;
+	 *             other values are for the conditioning variables (in the order
+	 *             given in the constructor)
+	 */
+	public void addDataset(String[][] data) {
+		if (valueToIndex != null) {
+			System.out.println("Warning: using existing map of values to index");
+		}
+		if (data == null || data.length == 0) {
+			throw new RuntimeException("Data is empty");
+		}
+
+		int nVariables = data[0].length;
+		int nConditioningVariables = nVariables - 1;
+
+		// now creating a mapping from String to integer
+		valueToIndex = new ArrayList<>(nVariables);
+		indexToValue = new ArrayList<>(nVariables);
+		for (int i = 0; i < nVariables; i++) {
+			valueToIndex.add(new HashMap<String, Integer>());
+			indexToValue.add(new ArrayList<String>());
+		}
+		
+		for (String[] datapoint : data) {
+			for (int j = 0; j < datapoint.length; j++) {
+				HashMap<String, Integer> map = valueToIndex.get(j);
+				String val = datapoint[j];
+				if (!map.containsKey(val)) {
+					int nValuesForVariable = map.size();
+					map.put(val, nValuesForVariable);
+					indexToValue.get(j).add(val);
+				}
+			}
+		}
+		nValuesConditionedVariable = valueToIndex.get(0).size();
+		nValuesContioningVariables = new int[nConditioningVariables];
+		for (int j = 0; j < nConditioningVariables; j++) {
+			nValuesContioningVariables[j] = valueToIndex.get(j + 1).size();
+		}
+		root = new ProbabilityNode(this, 0, createFullTree);
+
+		int[] datapointInt = new int[nVariables];
+		for (String[] datapoint : data) {
+			for (int j = 0; j < datapoint.length; j++) {
+				HashMap<String, Integer> map = valueToIndex.get(j);
+				datapointInt[j] = map.get(datapoint[j]);
+			}
+			root.addObservation(datapointInt, 1);
+		}
+		lgCache = new LogStirlingCache(0.0, data.length);
+		nDatapoints = data.length;
+		this.smooth();
 	}
 
 	public void smoothTree() {
@@ -237,14 +302,36 @@ public class ProbabilityTree {
 	}
 
 	/**
-	 * @param sample
-	 * @return
+	 * Get the probability estimated by the HDP process
+	 * 
+	 * @param sample a datapoint (without the target variable)
+	 * @return it's probability distribution over the target variable
 	 */
 	public double[] query(int[] sample) {
 		ProbabilityNode node = root;
 		for (int n = 0; n < sample.length; n++) {
 			if (node.children[sample[n]] != null) {
 				node = node.children[sample[n]];
+			} else {
+				break;
+			}
+		}
+		return node.pkAccumulated;
+	}
+
+	/**
+	 * Get the probability estimated by the HDP process
+	 * 
+	 * @param sample a datapoint (without the target variable)
+	 * @return it's probability distribution over the target variable
+	 */
+	public double[] query(String... sample) {
+		ProbabilityNode node = root;
+		for (int j = 0; j < sample.length; j++) {
+			//+1 because storing the target as well
+			int index = valueToIndex.get(j+1).get(sample[j]);
+			if (node.children[index] != null) {
+				node = node.children[index];
 			} else {
 				break;
 			}
@@ -284,53 +371,16 @@ public class ProbabilityTree {
 		return root.printAccumulatedPksRecursively("root");
 	}
 
-	public static void main(String... args) {
-		
-		System.out.println(FastMath.exp(FastMath.log(Double.NEGATIVE_INFINITY)));
-		int[] arities = new int[] { 3, 2, 2 };
-
-		int m_Iterations = 5000;
-		int m_Tying = 2;
-		
-		Random r = new Random(1);
-		ProbabilityTree tree = new ProbabilityTree(2, arities, m_Iterations, m_Tying);
-		int nDataPoints = 10000;
-		int[][] data = new int[nDataPoints][];
-		for (int i = 0; i < data.length; i++) {
-			data[i] = new int[4];
-			// sample xs uniformly
-			for (int j = 1; j < data[i].length; j++) {
-				data[i][j] = (int) (r.nextDouble() / (1.0 / arities[j - 1]));
-			}
-			if (r.nextDouble() < .1) {// noise
-				data[i][0] = r.nextInt(2);
-			} else {
-				data[i][0] = (data[i][1] == 1 || (data[i][1] == 2 && data[i][2] == 0 && data[i][3] == 1)) ? 1 : 0;
-
-			}
-		}
-
-		tree.addDataset(data);
-		// System.out.println(tree.printTksAndNks());
-		// System.out.println(tree.root.checkNkSumTks());
-		// System.out.println("init likelihood
-		// tree="+tree.logScoreTree());
-
-		// System.out.println(tree.printNks()+"\n");
-		// System.out.println(tree.printTks()+"\n");
-		// System.out.println("optimized likelihood tree=" +
-		// tree.logScoreTree());
-		// System.out.println(tree.printTksAndNks() + "\n");
-
-		double[] p = tree.query(new int[] { 1, 0, 1 });
-
-		// System.out.println(tree.printPks());
-		System.out.println(tree.printFinalPks());
-		System.out.println(Arrays.toString(p));
-
-	}
-
+	/**
+	 * This function samples a dataset from the learned conditional - really this shouldn't be used unless you have a very specific case
+	 * @param nDataPoints number of datapoints to generate
+	 * @return the generated dataset
+	 * @throws NoSuchAlgorithmException
+	 */
 	public int[][] sampleDataset(int nDataPoints) throws NoSuchAlgorithmException {
+		if(nValuesContioningVariables==null) {
+			throw new RuntimeException("tree needs to be learnt before sampling a dataset from it");
+		}
 		int[][] data = new int[nDataPoints][nValuesContioningVariables.length + 1];
 		SecureRandom srg = SecureRandom.getInstance("SHA1PRNG");
 
@@ -359,8 +409,8 @@ public class ProbabilityTree {
 
 		return data;
 	}
-	
-	public void setConcentrationTyingStrategy(TyingStrategy tyingStrategy){
+
+	public void setConcentrationTyingStrategy(TyingStrategy tyingStrategy) {
 		this.concentrationTyingStrategy = tyingStrategy;
 	}
 
@@ -373,13 +423,20 @@ public class ProbabilityTree {
 			this.concentrationTyingStrategy = TyingStrategy.LEVEL;
 		} else if (tyingStrategy == 3) {
 			this.concentrationTyingStrategy = TyingStrategy.SINGLE;
-		} 
+		}
 	}
 	
-	/** averaged in log space **/
-	private void recordProbabilitiesInLogScale() {
-		root.computeProbabilitiesInLogScale();
-		root.recordProbabilitiesInLogScale();
+	public String[] getValuesTarget() {
+		String[]values = new String[nValuesConditionedVariable];
+		for (int j = 0; j < values.length; j++) {
+			values[j]=indexToValue.get(0).get(j);
+		}
+		return values;
 	}
-	
+
+	private void recordProbabilities() {
+		root.computeProbabilities();
+		root.addRecordedProbabilities();
+	}
+
 }
