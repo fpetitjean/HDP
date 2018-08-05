@@ -59,7 +59,7 @@ public class Test1Level {
 		ProbabilityTree tree = new ProbabilityTree();
 		tree.addDataset(data);
 		System.out.println("Learnt tree looks like...");
-		System.out.println(tree.printFinalPks());
+		System.out.println(tree.printProbabilities());
 		
 		
 	}

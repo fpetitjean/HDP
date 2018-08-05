@@ -49,7 +49,7 @@ public class Test2LevelMLPaperMain {
 		
 		ProbabilityTree tree = new ProbabilityTree(false,50000,TyingStrategy.NONE,1);
 		tree.addDataset(data);
-		System.out.println(tree.printFinalPks());
+		System.out.println(tree.printProbabilities());
 		System.out.println(tree.printTksAndNks());
 		
 		System.out.println("HDP estimates of p(x|y) are:");

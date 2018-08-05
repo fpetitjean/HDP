@@ -31,7 +31,7 @@ public class Test2LevelsExampleHeartAttack {
 		};
 		
 		ProbabilityTree hdp = new ProbabilityTree();
-		hdp.addDataset(data);
+		hdp.addDataset(data);//learn distribution from the dataset
 		
 		System.out.println("\t\t\theart attack:\t\t"+Arrays.toString(hdp.getValuesTarget()));
 		System.out.println("p(heart attack | heavy & short)=\t"+Arrays.toString(hdp.query("heavy","short")));
@@ -39,7 +39,7 @@ public class Test2LevelsExampleHeartAttack {
 		System.out.println("p(heart attack | light & tall) =\t"+Arrays.toString(hdp.query("light","tall")));
 		
 		System.out.println("Learnt tree looks like...");
-		System.out.println(hdp.printFinalPks());
+		System.out.println(hdp.printProbabilities());
 		
 		
 	}

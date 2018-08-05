@@ -363,11 +363,7 @@ public class ProbabilityTree {
 
 	}
 
-	public String printPks() {
-		return root.printPksRecursively("root");
-	}
-
-	public String printFinalPks() {
+	public String printProbabilities() {
 		return root.printAccumulatedPksRecursively("root");
 	}
 
