@@ -33,10 +33,6 @@
 
 	<target name="run" depends="jar">
 		<java jar="${jar.dir}/${ant.project.name}.jar" fork="true" />
-		<classpath>
-			<path refid="classpath" />
-			<path location="${jar.dir}/${ant.project.name}.jar" />
-		</classpath>
 	</target>
 
 	<target name="clean-build" depends="clean,jar" />
