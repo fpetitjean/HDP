@@ -1,4 +1,4 @@
-# Hierarchical Dirichlet Processes for conditional distribution estimation
+# Hierarchical Dirichlet Processes (HDP) for conditional distribution estimation
 This package offers an accurate parameter estimation technique for Bayesian Network classifiers. It uses a Hierarchical Dirichlet Process to estimate the parameters (using a collapsed Gibbs sampler). Note that the package is built in a generic way such that it can estimate any conditional probability distributions over categorical variables. 
 
 More information available at http://www.francois-petitjean.com/Research/
@@ -32,7 +32,7 @@ This package requires Java 8 (to run) and Ant (to compile); other supporting lib
 
 ## Compiling HDP estimation
 ```
-git clone https://github.com/fpetitjean/HierarchicalDirichelProcessEstimation HDP
+git clone https://github.com/fpetitjean/HDP
 cd HDP
 ant
 ``` 
