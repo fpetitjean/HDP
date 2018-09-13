@@ -3,6 +3,8 @@ package tools;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.FastMath;
 
+import hdp.Concentration;
+
 public class MathUtils {
 
 	/***
@@ -31,14 +33,14 @@ public class MathUtils {
 	 * @return
 	 */
 
-	public static double logPochhammerSymbol(double c, double d, int N) {
+	public static double logPochhammerSymbol(Concentration c, double d, int N) {
 
 		double lps = 0.0;
 
 		if (d == 0) {
-			lps = N * FastMath.log(c);
+			lps = N * c.getLogConcentration();
 		} else {
-			lps = N * FastMath.log(d) + logGammaRatio(c / d, N);
+			lps = N * FastMath.log(d) + logGammaRatio(c.getConcentration() / d, N);
 		}
 
 		return lps;

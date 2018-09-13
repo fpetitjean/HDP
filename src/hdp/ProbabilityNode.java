@@ -190,8 +190,7 @@ public class ProbabilityNode {
 	 */
 	public double logScoreSubTree() {
 		double res = 0.0;
-		double concentration = getConcentration();
-		res += MathUtils.logPochhammerSymbol(concentration, 0.0, marginal_tk);
+		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
 //		System.out.println(res+" c="+concentration+" T="+marginal_tk);
 //		res -= MathUtils.logGammaRatio(concentration, marginal_nk);
 //		System.out.println(res+" c="+concentration+" N="+marginal_nk);
@@ -354,12 +353,11 @@ public class ProbabilityNode {
 		tk[k] += incVal;
 		marginal_tk += incVal;
 		
-		double concentration = getConcentration();
 		double res = 0.0;
 
 		//partial score difference for current node
 		res += tree.logStirling(0.0, nk[k], tk[k]);
-		res += MathUtils.logPochhammerSymbol(concentration, 0.0, marginal_tk);
+		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
 		
 		// partial score difference for parent
 		if (parent != null) {
@@ -476,7 +474,7 @@ public class ProbabilityNode {
 		if(c==null){
 			return 2.0;
 		}else{
-			return c.c;
+			return c.getConcentration();
 		}
 	}
 

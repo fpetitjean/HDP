@@ -10,13 +10,15 @@ import org.apache.commons.math3.util.FastMath;
 public class Concentration {
 	private double priorRate=1.0;
 	private static final double priorShape = 2.0;
-	protected double c;
+	private double c;
 	ArrayList<Float> logGammaRatioCache;
 	int indexLastValidLogGammaRatio;
+	private double logC;
+	
 	ArrayList<ProbabilityNode> tiedNodes;
 
 	public Concentration(double c) {
-		this.c = c;
+		setConcentration(c);
 		this.priorRate = priorShape/c;
 		computeLogGammaRatioCache();
 	}
@@ -84,7 +86,16 @@ public class Concentration {
 			return;
 
 		this.c = flooredC;
+		this.logC = FastMath.log(c);
 		computeLogGammaRatioCache();
+	}
+	
+	public double getConcentration(){
+		return this.c;
+	}
+	
+	public double getLogConcentration(){
+		return this.logC;
 	}
 
 	public float logGammaRatioForConcentration(int n) {
