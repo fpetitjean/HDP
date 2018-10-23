@@ -422,7 +422,7 @@ public class LogStirlingGenerator implements AutoCloseable {
 
 			// Check k dimension. Cap to K (if K != 0) while trying to grow by extension steps
 			if (k > boundingK) {
-				long nk = Long.max((long)(boundingK*EXTENDS_RATIO), k);
+				long nk = (long)k+1000; //Long.max((long)(boundingK*EXTENDS_RATIO), k);
 				if (K != 0 && nk > K) {	nk = K; }
 				nk = extends_k(nk);
 				if (k > nk) {
@@ -430,19 +430,19 @@ public class LogStirlingGenerator implements AutoCloseable {
 					throw new CacheExtensionException(msg);
 				}
 				boundingK = nk;
-				assert (boundingRow.length() == boundingK);
+				// assert (boundingRow.length() == boundingK);
 			}
 
 			// Check n dimension. Cap to N while trying to grow by extension steps.
 			if (n > boundingN) {
-				long nn = Long.min(N, Long.max((long)(boundingN * EXTENDS_RATIO), n));
+				long nn = Long.min(N, (long)(n*EXTENDS_RATIO)); //Long.max((long)(boundingN * EXTENDS_RATIO), n));
 				nn = extends_n(nn);
 				if (n > nn) {
 					String msg = "Cannnot extends the cache to query n = " + n + ". Cache extended up to + " + nn + ".";
 					throw new CacheExtensionException(msg);
 				}
 				boundingN = nn;
-				assert (boundingCol.length() == boundingN);
+				// assert (boundingCol.length() == boundingN);
 			}
 
 			// Get the result.
