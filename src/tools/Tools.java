@@ -1,4 +1,4 @@
-package logStirling;
+package tools;
 
 public class Tools {
 

@@ -10,7 +10,7 @@ import hdp.ProbabilityTree;
 
 public class Test1Level {
 
-	public static void main(String...args) throws NoSuchAlgorithmException {
+	public static void main(String...args) throws NoSuchAlgorithmException, NoSuchFieldException, IllegalAccessException {
 		int nDataPoints = 10000;
 		int nValuesY = 2;
 		int[] arities = new int[] {5 };

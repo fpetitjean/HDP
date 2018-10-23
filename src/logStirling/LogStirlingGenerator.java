@@ -5,6 +5,7 @@ import org.apache.commons.math3.util.FastMath;
 
 import logStirling.unsafeArray.DoubleArray;
 import tools.MathUtils;
+import tools.Tools;
 
 /*
  * Computation of the Log Stirling Numbers, with a discount parameter.

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.apache.commons.math3.util.FastMath;
 
+import logStirling.LogStirlingGenerator.CacheExtensionException;
 import tools.MathUtils;
 
 public class ProbabilityNode {
@@ -198,7 +199,13 @@ public class ProbabilityNode {
 
 		// Now nks are set for current node; let's initialize the tks
 		for (int k = 0; k < nk.length; k++) {
-			res += tree.logStirling(0.0, nk[k], tk[k]);
+			
+			try {
+				res += tree.logStirling(0.0, nk[k], tk[k]);
+			} catch (NoSuchFieldException | IllegalAccessException | CacheExtensionException e) {
+				e.printStackTrace();
+			}
+			
 			if(res==Double.NEGATIVE_INFINITY){
 				throw new RuntimeException("log stirling return neg infty");
 			}
@@ -356,14 +363,28 @@ public class ProbabilityNode {
 		double res = 0.0;
 
 		//partial score difference for current node
-		res += tree.logStirling(0.0, nk[k], tk[k]);
+		try {
+			res += tree.logStirling(0.0, nk[k], tk[k]);
+		} catch (NoSuchFieldException | IllegalAccessException | CacheExtensionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
 		
 		// partial score difference for parent
 		if (parent != null) {
 			parent.nk[k] += incVal;
 			parent.marginal_nk += incVal;
-			res += tree.logStirling(0.0, parent.nk[k],  parent.tk[k]);
+			
+			
+			try {
+				res += tree.logStirling(0.0, parent.nk[k],  parent.tk[k]);
+			} catch (NoSuchFieldException | IllegalAccessException | CacheExtensionException e) {
+				e.printStackTrace();
+			}
+			
+			
 //			res -= MathUtils.logGammaRatio(parent.getConcentration(), parent.marginal_nk);
 			res -= parent.c.logGammaRatioForConcentration(parent.marginal_nk);
 		}

@@ -10,7 +10,7 @@ import org.junit.Assert;
 public class Test2LevelsExampleHeartAttack {
 
 	
-	public static void main(String... args) {
+	public static void main(String... args) throws NoSuchFieldException, IllegalAccessException {
 		
 		String [][]data = {
 				{"yes","heavy","tall"},

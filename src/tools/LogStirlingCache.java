@@ -5,6 +5,13 @@ import java.util.Arrays;
 import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.util.FastMath;
 
+
+/*
+ *  Original code for the Log Stirling cache computation.
+ *  Replaced by the logStirling package on 23/10/2018
+ * 
+ */
+
 public class LogStirlingCache {
 
 	double a;

@@ -1,11 +1,9 @@
 package testing;
 
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import logStirling.LogStirlingFactory;
 import logStirling.LogStirlingGenerator;

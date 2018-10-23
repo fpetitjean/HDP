@@ -10,8 +10,10 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.util.FastMath;
 
-import tools.LogStirlingCache;
+import logStirling.LogStirlingGenerator;
+import logStirling.LogStirlingGenerator.CacheExtensionException;
 import tools.MathUtils;
+import logStirling.LogStirlingFactory;
 
 public class ProbabilityTree {
 
@@ -19,7 +21,7 @@ public class ProbabilityTree {
 	private int nBurnIn;
 	private int frequencySamplingC;
 
-	LogStirlingCache lgCache;
+	LogStirlingGenerator lgCache;
 	protected RandomGenerator rng = new MersenneTwister(3071980);
 	ProbabilityNode root;
 	ArrayList<Concentration> concentrationsToSample;
@@ -198,8 +200,10 @@ public class ProbabilityTree {
 	 * @param data a dataset; first value is the value for the conditioned variable;
 	 *             other values are for the conditioning variables (in the order
 	 *             given in the constructor)
+	 * @throws IllegalAccessException 
+	 * @throws NoSuchFieldException 
 	 */
-	public void addDataset(int[][] data) {
+	public void addDataset(int[][] data) throws NoSuchFieldException, IllegalAccessException {
 		if (data == null || data.length == 0) {
 			throw new RuntimeException("Data is empty");
 		}
@@ -227,7 +231,7 @@ public class ProbabilityTree {
 		for (int[] datapoint : data) {
 			root.addObservation(datapoint, 1);
 		}
-		lgCache = new LogStirlingCache(0.0, data.length);
+		lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length, 0.0);
 		nDatapoints = data.length;
 		this.smooth();
 	}
@@ -239,8 +243,10 @@ public class ProbabilityTree {
 	 * @param data a dataset; first value is the value for the conditioned variable;
 	 *             other values are for the conditioning variables (in the order
 	 *             given in the constructor)
+	 * @throws IllegalAccessException 
+	 * @throws NoSuchFieldException 
 	 */
-	public void addDataset(String[][] data) {
+	public void addDataset(String[][] data) throws NoSuchFieldException, IllegalAccessException {
 		if (valueToIndex != null) {
 			System.out.println("Warning: using existing map of values to index");
 		}
@@ -285,18 +291,25 @@ public class ProbabilityTree {
 			}
 			root.addObservation(datapointInt, 1);
 		}
-		lgCache = new LogStirlingCache(0.0, data.length);
+		lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length,  0.0);
 		nDatapoints = data.length;
 		this.smooth();
 	}
 
-	public void smoothTree() {
+	public void smoothTree() throws NoSuchFieldException, IllegalAccessException {
 		if (lgCache == null)
-			lgCache = new LogStirlingCache(0.0, nDatapoints);
+			lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  0.0);
 		this.smooth();
 	}
 
-	public void setLogStirlingCache(LogStirlingCache cache) {
+	public void setLogStirlingCache(LogStirlingGenerator cache) {
+		if(lgCache != null) {
+			try {
+				lgCache.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		this.lgCache = cache;
 	}
 
@@ -338,11 +351,19 @@ public class ProbabilityTree {
 		return node.pkAccumulated;
 	}
 
-	protected double logStirling(double a, int n, int m) {
-		if (a != lgCache.getA()) {
-			lgCache = new LogStirlingCache(a, nDatapoints);
+	protected double logStirling(double a, int n, int m) throws NoSuchFieldException, IllegalAccessException, CacheExtensionException {
+		
+		if (a != lgCache.discountP) {
+			try {
+				// Do not forget to close to free resources!
+				lgCache.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  a);
 		}
-		double res = lgCache.query(a, n, m);
+		
+		double res = lgCache.query(n, m);
 		return res;
 
 	}
