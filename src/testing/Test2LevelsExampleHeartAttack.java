@@ -1,11 +1,7 @@
 package testing;
 
 import hdp.ProbabilityTree;
-
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
-import org.junit.Assert;
 
 public class Test2LevelsExampleHeartAttack {
 

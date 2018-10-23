@@ -7,8 +7,8 @@ public class Test2LevelMLPaperMain {
 
 	
 	public static void main(String... args) throws NoSuchFieldException, IllegalAccessException {
-		int nValuesY = 2;
-		int[] arities = new int[] {2};
+		// int nValuesY = 2;
+		// int[] arities = new int[] {2};
 		
 		/*
 		 * Data is 
