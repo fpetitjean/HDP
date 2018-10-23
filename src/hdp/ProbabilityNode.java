@@ -202,8 +202,10 @@ public class ProbabilityNode {
 			
 			try {
 				res += tree.logStirling(0.0, nk[k], tk[k]);
-			} catch (NoSuchFieldException | IllegalAccessException | CacheExtensionException e) {
+			} catch (CacheExtensionException e) {
+				System.err.println("Cannot extends the cache to querry S("+nk[k]+", "+tk[k]+")");
 				e.printStackTrace();
+				System.exit(1);
 			}
 			
 			if(res==Double.NEGATIVE_INFINITY){
@@ -365,9 +367,10 @@ public class ProbabilityNode {
 		//partial score difference for current node
 		try {
 			res += tree.logStirling(0.0, nk[k], tk[k]);
-		} catch (NoSuchFieldException | IllegalAccessException | CacheExtensionException e) {
-			// TODO Auto-generated catch block
+		} catch (CacheExtensionException e) {
+			System.err.println("Cannot extends the cache to querry S("+nk[k]+", "+tk[k]+")");
 			e.printStackTrace();
+			System.exit(1);
 		}
 		
 		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
@@ -380,8 +383,10 @@ public class ProbabilityNode {
 			
 			try {
 				res += tree.logStirling(0.0, parent.nk[k],  parent.tk[k]);
-			} catch (NoSuchFieldException | IllegalAccessException | CacheExtensionException e) {
+			} catch (CacheExtensionException e) {
+				System.err.println("Cannot extends the cache to querry S("+nk[k]+", "+tk[k]+")");
 				e.printStackTrace();
+				System.exit(1);
 			}
 			
 			

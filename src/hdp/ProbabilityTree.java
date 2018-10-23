@@ -200,10 +200,8 @@ public class ProbabilityTree {
 	 * @param data a dataset; first value is the value for the conditioned variable;
 	 *             other values are for the conditioning variables (in the order
 	 *             given in the constructor)
-	 * @throws IllegalAccessException 
-	 * @throws NoSuchFieldException 
 	 */
-	public void addDataset(int[][] data) throws NoSuchFieldException, IllegalAccessException {
+	public void addDataset(int[][] data) {
 		if (data == null || data.length == 0) {
 			throw new RuntimeException("Data is empty");
 		}
@@ -231,7 +229,15 @@ public class ProbabilityTree {
 		for (int[] datapoint : data) {
 			root.addObservation(datapoint, 1);
 		}
-		lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length, 0.0);
+		
+		try {
+			lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length, 0.0);
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+			System.err.println("Throws as RuntimeException");
+			throw new RuntimeException(e);
+		}
+		
 		nDatapoints = data.length;
 		this.smooth();
 	}
@@ -243,10 +249,8 @@ public class ProbabilityTree {
 	 * @param data a dataset; first value is the value for the conditioned variable;
 	 *             other values are for the conditioning variables (in the order
 	 *             given in the constructor)
-	 * @throws IllegalAccessException 
-	 * @throws NoSuchFieldException 
 	 */
-	public void addDataset(String[][] data) throws NoSuchFieldException, IllegalAccessException {
+	public void addDataset(String[][] data) {
 		if (valueToIndex != null) {
 			System.out.println("Warning: using existing map of values to index");
 		}
@@ -291,14 +295,32 @@ public class ProbabilityTree {
 			}
 			root.addObservation(datapointInt, 1);
 		}
-		lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length,  0.0);
+		
+		
+		try {
+			lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length,  0.0);
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+			System.err.println("Throws as RuntimeException");
+			throw new RuntimeException(e);
+		}
+		
+		
 		nDatapoints = data.length;
 		this.smooth();
 	}
 
-	public void smoothTree() throws NoSuchFieldException, IllegalAccessException {
+	public void smoothTree() {
+		
 		if (lgCache == null)
-			lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  0.0);
+			try {
+				lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  0.0);
+			} catch (NoSuchFieldException | IllegalAccessException e) {
+				System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Throws as RuntimeException");
+				throw new RuntimeException(e);
+			}
+		
 		this.smooth();
 	}
 
@@ -307,7 +329,9 @@ public class ProbabilityTree {
 			try {
 				lgCache.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.err.println("Closing Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Throws as RuntimeException");
+				throw new RuntimeException(e);
 			}
 		}
 		this.lgCache = cache;
@@ -351,16 +375,25 @@ public class ProbabilityTree {
 		return node.pkAccumulated;
 	}
 
-	protected double logStirling(double a, int n, int m) throws NoSuchFieldException, IllegalAccessException, CacheExtensionException {
+	protected double logStirling(double a, int n, int m) throws CacheExtensionException {
 		
 		if (a != lgCache.discountP) {
 			try {
 				// Do not forget to close to free resources!
 				lgCache.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.err.println("Closing Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Throws as RuntimeException");
+				throw new RuntimeException(e);
 			}
-			lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  a);
+			
+			try {
+				lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  a);
+			} catch (NoSuchFieldException | IllegalAccessException e) {
+				System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Throws as RuntimeException");
+				throw new RuntimeException(e);
+			}
 		}
 		
 		double res = lgCache.query(n, m);
