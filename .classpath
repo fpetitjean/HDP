@@ -7,10 +7,5 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/HierarchicalPYPSmoothing/lib/commons-math3-3.6.1-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/junit-4.12.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/HierarchicalPYPSmoothing/lib/junit-4.12-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
