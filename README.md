@@ -10,6 +10,7 @@ This code is supporting [our paper in Machine Learning](https://doi.org/10.1007/
 The paper is also available on [arXiv](https://arxiv.org/pdf/1708.07581).
 
 When using this repository, please cite:
+
 ```
 @ARTICLE{Petitjean2018-HDP,
   author = {Petitjean, Francois and Buntine, Wray and Webb, Geoffrey I. and Zaidi, Nayyar},
@@ -31,11 +32,13 @@ This package requires Java 8 (to run) and Ant (to compile); other supporting lib
 # Installing
 
 ## Compiling HDP estimation
+
 ```
 git clone https://github.com/fpetitjean/HDP
 cd HDP
 ant
-``` 
+```
+ 
 ## Getting a cross-platform jar
 Simply entering `ant jar` will create a jar file that you can execute in most environments in `bin/jar/HDP.jar`. 
 Normal execution would then look like
@@ -52,6 +55,7 @@ This will run a simple example with a small toy dataset and then learning the pr
 ## Using it for your own library
 The code available at `src/testing/testing.Test2LevelsExampleHeartAttack.java` gives a good idea on how to plug your own code with this library. 
 Basically, you have to create a dataset in the form of a matrix of integers (`int[N][M+1]`) where `N` is the number of samples, and `M` the number of covariates (or features). `+1` is because the first column gives the values of the target variable you want to get a conditional estimate over. A cell `data[i][j]` represents the value taken by sample `i` for feature `x_{j-1}`. `data[i][0]` represents the value taken for the target variable. Things are coded over integers because this code is for categorical distributions. 
+
 ```java
 String [][]data = {
     {"yes","heavy","tall"},
