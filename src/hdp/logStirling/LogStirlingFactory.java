@@ -1,6 +1,6 @@
-package logStirling;
+package hdp.logStirling;
 
-import logStirling.cache.DynCache;
+import hdp.logStirling.cache.DynCache;
 
 /** Helper class to easily create a Log Stirling Generator */
 public class LogStirlingFactory {

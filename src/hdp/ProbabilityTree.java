@@ -10,10 +10,10 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.util.FastMath;
 
-import logStirling.LogStirlingGenerator;
-import logStirling.LogStirlingGenerator.CacheExtensionException;
-import tools.MathUtils;
-import logStirling.LogStirlingFactory;
+import hdp.logStirling.LogStirlingFactory;
+import hdp.logStirling.LogStirlingGenerator;
+import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
+import hdp.tools.MathUtils;
 
 public class ProbabilityTree {
 

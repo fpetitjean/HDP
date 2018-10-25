@@ -1,4 +1,4 @@
-package testing;
+package hdp.testing;
 
 import hdp.ProbabilityTree;
 import hdp.TyingStrategy;

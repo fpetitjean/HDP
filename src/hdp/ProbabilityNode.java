@@ -6,8 +6,8 @@ import java.util.Arrays;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.apache.commons.math3.util.FastMath;
 
-import logStirling.LogStirlingGenerator.CacheExtensionException;
-import tools.MathUtils;
+import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
+import hdp.tools.MathUtils;
 
 public class ProbabilityNode {
 	/**

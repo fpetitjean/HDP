@@ -7,7 +7,7 @@
 	<property name="build"		location="bin"/>
 	<property name="dist"		location="dist"/>
 	<property name="lib" 		location="lib" />
-	<property name="mainclass" 	value="testing.Test2LevelsExampleHeartAttack" />
+	<property name="main-class" value="hdp.testing.Test2LevelsExampleHeartAttack" />
 	
 	<path id="classpath">
 		<fileset dir="${lib}" includes="**/*.jar" /> 

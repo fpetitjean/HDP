@@ -1,4 +1,4 @@
-package testing;
+package hdp.testing;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

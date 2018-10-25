@@ -1,4 +1,4 @@
-package logStirling.unsafeArray;
+package hdp.logStirling.unsafeArray;
 
 public class DoubleArray extends RawArray {
 	

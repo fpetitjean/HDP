@@ -1,4 +1,4 @@
-package logStirling.unsafeArray;
+package hdp.logStirling.unsafeArray;
 
 import sun.misc.Unsafe;
 import java.lang.reflect.Field;

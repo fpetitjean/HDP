@@ -1,7 +1,7 @@
-package logStirling.cache;
+package hdp.logStirling.cache;
 
-import logStirling.LogStirlingGenerator;
-import logStirling.unsafeArray.FloatArray;
+import hdp.logStirling.LogStirlingGenerator;
+import hdp.logStirling.unsafeArray.FloatArray;
 
 /*
  * By convention: (0,0) map to the index 0

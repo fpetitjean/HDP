@@ -1,11 +1,11 @@
-package logStirling;
+package hdp.logStirling;
 
 import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.util.FastMath;
 
-import logStirling.unsafeArray.DoubleArray;
-import tools.MathUtils;
-import tools.Tools;
+import hdp.logStirling.unsafeArray.DoubleArray;
+import hdp.tools.MathUtils;
+import hdp.tools.Tools;
 
 /*
  * Computation of the Log Stirling Numbers, with a discount parameter.

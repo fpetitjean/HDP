@@ -1,4 +1,4 @@
-package tools;
+package hdp.tools;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.FastMath;
@@ -46,7 +46,6 @@ public class MathUtils {
 		return lps;
 	}
 
-
 	public static final double logadd(double V, double lp) {
 		if (lp > V) {
 			// swap so V is bigger
@@ -56,7 +55,7 @@ public class MathUtils {
 		}
 		return V + FastMath.log(1.0 + FastMath.exp(lp - V));
 	}
-	
+
 	public static void normalizeInLogDomain(double[] logs) {
 		double logSum = sumInLogDomain(logs);
 		for (int i = 0; i < logs.length; i++)
@@ -85,14 +84,14 @@ public class MathUtils {
 		// and return log of sum
 		return maxLog + FastMath.log(sum);
 	}
-	
+
 	public static void exp(double[] logs) {
 		for (int c = 0; c < logs.length; c++) {
 			logs[c] = FastMath.exp(logs[c]);
 		}
 	}
-	
-	public static final int sampleFromMultinomial(RandomGenerator rdg,double[]probs){
+
+	public static final int sampleFromMultinomial(RandomGenerator rdg, double[] probs) {
 		double rand = rdg.nextDouble();
 		int chosenValue = 0;
 		double sumProba = probs[chosenValue];
