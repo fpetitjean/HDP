@@ -183,8 +183,6 @@ public class ProbabilityTree {
 
 		}
 
-		root.averageAccumulatedProbabilities();
-
 		double score = logScoreTree();
 		return score;
 	}
@@ -352,7 +350,7 @@ public class ProbabilityTree {
 				break;
 			}
 		}
-		return node.pkAccumulated;
+		return node.pkAveraged;
 	}
 
 	/**
@@ -372,7 +370,7 @@ public class ProbabilityTree {
 				break;
 			}
 		}
-		return node.pkAccumulated;
+		return node.pkAveraged;
 	}
 
 	protected double logStirling(double a, int n, int m) throws CacheExtensionException {

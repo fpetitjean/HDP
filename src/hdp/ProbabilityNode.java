@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.apache.commons.math3.util.FastMath;
 
 import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
 import hdp.tools.MathUtils;
@@ -36,7 +35,7 @@ public class ProbabilityNode {
 	/**
 	 * contains the accumulated pk for several runs of Gibbs sampling
 	 */
-	double[] pkAccumulated;
+	double[] pkAveraged;
 	/**
 	 * contains the number of pks that have been accumulated in the pkSum
 	 */
@@ -229,20 +228,20 @@ public class ProbabilityNode {
 	 */
 	protected void recordAndAverageProbabilities() {
 
-		if (pkAccumulated == null) {
-			pkAccumulated = new double[nk.length];
+		if (pkAveraged == null) {
+			pkAveraged = new double[nk.length];
 			nPkAccumulated = 0;
 		}
 		double sum = 0.0;
-		for (int k = 0; k < pkAccumulated.length; k++) {
-			pkAccumulated[k] = pkAccumulated[k] * nPkAccumulated + pk[k];
-			pkAccumulated[k] /= (nPkAccumulated+1);
-			if (pkAccumulated[k] == 0)
-				pkAccumulated[k] = 1e-75;
-			sum += pkAccumulated[k];
+		for (int k = 0; k < pkAveraged.length; k++) {
+			pkAveraged[k] = pkAveraged[k] * nPkAccumulated + pk[k];
+			pkAveraged[k] /= (nPkAccumulated+1);
+			if (pkAveraged[k] == 0)
+				pkAveraged[k] = 1e-75;
+			sum += pkAveraged[k];
 		}
-		for (int k = 0; k < pkAccumulated.length; k++) {
-			pkAccumulated[k] /= sum;
+		for (int k = 0; k < pkAveraged.length; k++) {
+			pkAveraged[k] /= sum;
 		}
 		nPkAccumulated++;
 
@@ -315,7 +314,7 @@ public class ProbabilityNode {
 		String res = "";
 
 		// root node
-		res += prefix + ":pk=" + Arrays.toString(pkAccumulated) + " c=" + this.c + "\n";
+		res += prefix + ":pk=" + Arrays.toString(pkAveraged) + " c=" + this.c + "\n";
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
@@ -608,9 +607,7 @@ public class ProbabilityNode {
 		double concentration = getConcentration();
 		double sum = 0.0;
 		for (int k = 0; k < pk.length; k++) {
-//			double parentProb=(parent!=null)?parent.pk[k]:1.0/pk.length;//uniform parent if root node
-
-			double parentProb = (this.parent != null) ? FastMath.exp(this.parent.pk[k]) : 1.0 / pk.length;
+			double parentProb = (this.parent != null) ? this.parent.pk[k] : 1.0 / pk.length;//uniform parent if root node
 
 			pk[k] = (nk[k]) / (marginal_nk + concentration)
 					+ (concentration) * parentProb / (marginal_nk + concentration);
@@ -620,11 +617,6 @@ public class ProbabilityNode {
 		// normalize
 		for (int k = 0; k < pk.length; k++) {
 			pk[k] /= sum;
-		}
-
-		// convert into log space
-		for (int k = 0; k < pk.length; k++) {
-			pk[k] = FastMath.log(pk[k]);
 		}
 
 		if (children != null) {
@@ -643,18 +635,19 @@ public class ProbabilityNode {
 	 */
 	protected void addRecordedProbabilities() {
 		// in this method, pkAccumulated stores the log sum
-		if (this.pkAccumulated == null) {
-			pkAccumulated = new double[nk.length];
-			nPkAccumulated = 0;
+		if (this.pkAveraged == null) {
+			pkAveraged = new double[nk.length];
+			nPkAccumulated = 1;
 		}
 
-		for (int k = 0; k < pkAccumulated.length; k++) {
-
-			if (nPkAccumulated == 0) {
-				pkAccumulated[k] = this.pk[k];
-			} else {
-				pkAccumulated[k] = MathUtils.logadd(pkAccumulated[k], pk[k]);
-			}
+		double sum = 0.0;
+		for (int k = 0; k < pkAveraged.length; k++) {
+				pkAveraged[k] += (pk[k]-pkAveraged[k])/nPkAccumulated;
+				sum += pkAveraged[k];
+		}
+		// normalize
+		for (int k = 0; k < pk.length; k++) {
+			pkAveraged[k] /= sum;
 		}
 		nPkAccumulated ++;
 
@@ -667,19 +660,4 @@ public class ProbabilityNode {
 		}
 	}
 	
-	public void averageAccumulatedProbabilities() {
-		MathUtils.normalizeInLogDomain(pkAccumulated);
-		
-		for (int k = 0; k < this.pkAccumulated.length; k++) {
-			pkAccumulated[k] = FastMath.exp(pkAccumulated[k]);
-		}
-
-		if (children != null) {
-			for (int c = 0; c < children.length; c++) {
-				if (children[c] != null) {
-					children[c].averageAccumulatedProbabilities();
-				}
-			}
-		}
-	}
 }
