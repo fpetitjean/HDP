@@ -101,4 +101,29 @@ public class MathUtils {
 		}
 		return chosenValue;
 	}
+	
+	// --- --- --- Penny's MEsti
+	
+	public static double m_MEsti = 1.0;
+	
+	public static double MEsti(double freq1, double freq2, double numValues) {
+		double mEsti = (freq1 + m_MEsti / numValues) / (freq2 + m_MEsti);
+//		System.out.println(m_MEsti+" - "+mEsti);
+		if(Double.isNaN(mEsti) && freq1==0.0){
+			mEsti = 0.0;
+		}
+		return mEsti;
+	}
+
+	public static double MEsti(double freq1, double freq2) {
+		double mEsti = freq1 / freq2;
+		return mEsti;
+	}
+	
+	 public static int sum(int[] int_array) {
+		 int acc = 0;
+		 for (int item : int_array) { acc += item;}
+		 return acc;
+	}
+	
 }

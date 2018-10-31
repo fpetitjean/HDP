@@ -25,6 +25,7 @@ public class ProbabilityTree {
 	protected RandomGenerator rng = new MersenneTwister(3071980);
 	ProbabilityNode root;
 	ArrayList<Concentration> concentrationsToSample;
+
 	ArrayList<HashMap<String, Integer>> valueToIndex;
 	ArrayList<ArrayList<String>> indexToValue;
 
@@ -36,9 +37,20 @@ public class ProbabilityTree {
 	protected int nDatapoints;
 	boolean createFullTree = false;
 
+	// Penny's MEstimation
+	// TODO: never used in hdp! to check!
+	private boolean m_BackOff;
+
+	// Penny's Ensemble
+	// TODO: removal
+	// private int[] parentOrder;
+
+	// Constructors
+
 	public ProbabilityTree() {
 		init(false, 5000, TyingStrategy.LEVEL, 5);
 	}
+
 	public ProbabilityTree(boolean createFullTree) {
 		init(createFullTree, 5000, TyingStrategy.LEVEL, 5);
 	}
@@ -59,6 +71,38 @@ public class ProbabilityTree {
 		this.frequencySamplingC = frequencySamplingC;
 		this.createFullTree = false;
 	}
+
+	// --- --- --- 'Old' Constructors
+	// TODO: cleanup ?!
+
+	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree) {
+		init(nValuesConditionedVariable, nValuesConditioningVariables, createFullTree, 5000, TyingStrategy.LEVEL, 5);
+	}
+
+	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, int m_Iterations,
+			int m_Tying) {
+		setConcentrationTyingStrategy(m_Tying);
+		init(nValuesConditionedVariable, nValuesConditioningVariables, false, m_Iterations,
+				this.concentrationTyingStrategy, 5);
+	}
+
+	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree,
+			int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC, boolean usePYP, int frequencySamplingD) {
+		init(nValuesConditionedVariable, nValuesConditioningVariables, createFullTree, m_Iterations, m_Tying,
+				frequencySamplingC);
+	}
+
+	protected void init(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree,
+			int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
+		this.nValuesConditionedVariable = nValuesConditionedVariable;
+		this.nValuesContioningVariables = nValuesConditioningVariables;
+		this.nIterGibbs = m_Iterations;
+		setConcentrationTyingStrategy(m_Tying);
+		this.nBurnIn = Math.min(1000, nIterGibbs / 10);
+		this.frequencySamplingC = frequencySamplingC;
+		root = new ProbabilityNode(this, 0, createFullTree);
+	}
+	// --- --- --- END OF Old Constructor
 
 	public int getNXs() {
 		return nValuesContioningVariables.length;
@@ -87,7 +131,7 @@ public class ProbabilityTree {
 		concentrationsToSample = new ArrayList<>();
 		switch (concentrationTyingStrategy) {
 		case NONE:
-			for (int depth = getNXs(); depth > 0; depth--) {
+			for (int depth = getNXs(); depth >= 0; depth--) {
 				// tying all children of a node
 				ArrayList<ProbabilityNode> nodes = getAllNodesAtDepth(depth);
 				for (ProbabilityNode node : nodes) {
@@ -153,9 +197,9 @@ public class ProbabilityTree {
 
 		root.prepareForSamplingTk();
 
-		// Gibbs sampling of the tks, c and d
+		// Gibbs sampling of the tks, c
 		for (int iter = 0; iter < nIterGibbs; iter++) {
-//			System.out.println("Iter=" + iter + " score=" + logScoreTree());
+			// System.out.println("Iter=" + iter + " score=" + logScoreTree());
 
 			// sample tks once
 			for (int depth = getNXs(); depth >= 0; depth--) {
@@ -163,14 +207,15 @@ public class ProbabilityTree {
 				// System.out.println("depth="+depth+"\t"+nodes.size()+"
 				// nodes");
 				for (ProbabilityNode node : nodes) {
-//					 System.out.println("Starting score before sampling tk="+logScoreTree());
+					// System.out.println("Starting score before sampling tk="+logScoreTree());
 					node.sampleTks();
-//					 System.out.println("Score after sampling tk="+logScoreTree());
+					// System.out.println("Score after sampling tk="+logScoreTree());
 				}
 			}
 
 			// sample c
 			if ((iter + frequencySamplingC / 2) % frequencySamplingC == 0) {
+				// sample c once
 				for (Concentration c : concentrationsToSample) {
 					c.sample(rng);
 
@@ -204,38 +249,38 @@ public class ProbabilityTree {
 			throw new RuntimeException("Data is empty");
 		}
 		int nVariables = data[0].length;
-		int nConditioningVariables = nVariables-1;
+		int nConditioningVariables = nVariables - 1;
 		int maxValueConditioned = 0;
 		nValuesContioningVariables = new int[nConditioningVariables];
-		
+
 		for (int i = 0; i < data.length; i++) {
-			if(data[i][0]>maxValueConditioned) {
+			if (data[i][0] > maxValueConditioned) {
 				maxValueConditioned = data[i][0];
 			}
 			for (int j = 1; j < data[i].length; j++) {
-				if(data[i][j]>nValuesContioningVariables[j-1]) {
-					nValuesContioningVariables[j-1]=data[i][j];
+				if (data[i][j] > nValuesContioningVariables[j - 1]) {
+					nValuesContioningVariables[j - 1] = data[i][j];
 				}
 			}
 		}
-		nValuesConditionedVariable = maxValueConditioned+1;//indexing from 0
+		nValuesConditionedVariable = maxValueConditioned + 1;// indexing from 0
 		for (int j = 0; j < nValuesContioningVariables.length; j++) {
 			nValuesContioningVariables[j]++;
 		}
 		root = new ProbabilityNode(this, 0, createFullTree);
-		
+
 		for (int[] datapoint : data) {
 			root.addObservation(datapoint, 1);
 		}
-		
+
 		try {
 			lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length, 0.0);
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+			System.err.println("Log Stirling Cache Exception " + e.getMessage());
 			System.err.println("Throws as RuntimeException");
 			throw new RuntimeException(e);
 		}
-		
+
 		nDatapoints = data.length;
 		this.smooth();
 	}
@@ -266,7 +311,7 @@ public class ProbabilityTree {
 			valueToIndex.add(new HashMap<String, Integer>());
 			indexToValue.add(new ArrayList<String>());
 		}
-		
+
 		for (String[] datapoint : data) {
 			for (int j = 0; j < datapoint.length; j++) {
 				HashMap<String, Integer> map = valueToIndex.get(j);
@@ -293,41 +338,47 @@ public class ProbabilityTree {
 			}
 			root.addObservation(datapointInt, 1);
 		}
-		
-		
+
 		try {
-			lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length,  0.0);
+			lgCache = LogStirlingFactory.newLogStirlingGenerator(data.length, 0.0);
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+			System.err.println("Log Stirling Cache Exception " + e.getMessage());
 			System.err.println("Throws as RuntimeException");
 			throw new RuntimeException(e);
 		}
-		
-		
+
 		nDatapoints = data.length;
 		this.smooth();
 	}
 
+	// TODO: do we keep that?
+	/*
+	 * public void addObservation(int[] datapoint) {
+	 * root.addObservation(datapoint, 1);
+	 * nDatapoints++;
+	 * }
+	 */
+
 	public void smoothTree() {
-		
+
 		if (lgCache == null)
 			try {
-				lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  0.0);
+				lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints, 0.0);
 			} catch (NoSuchFieldException | IllegalAccessException e) {
-				System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Log Stirling Cache Exception " + e.getMessage());
 				System.err.println("Throws as RuntimeException");
 				throw new RuntimeException(e);
 			}
-		
+
 		this.smooth();
 	}
 
 	public void setLogStirlingCache(LogStirlingGenerator cache) {
-		if(lgCache != null) {
+		if (lgCache != null) {
 			try {
 				lgCache.close();
 			} catch (Exception e) {
-				System.err.println("Closing Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Closing Log Stirling Cache Exception " + e.getMessage());
 				System.err.println("Throws as RuntimeException");
 				throw new RuntimeException(e);
 			}
@@ -362,8 +413,8 @@ public class ProbabilityTree {
 	public double[] query(String... sample) {
 		ProbabilityNode node = root;
 		for (int j = 0; j < sample.length; j++) {
-			//+1 because storing the target as well
-			int index = valueToIndex.get(j+1).get(sample[j]);
+			// +1 because storing the target as well
+			int index = valueToIndex.get(j + 1).get(sample[j]);
 			if (node.children[index] != null) {
 				node = node.children[index];
 			} else {
@@ -373,27 +424,40 @@ public class ProbabilityTree {
 		return node.pkAveraged;
 	}
 
+	public int[] queryMestimation(int[] sample) {
+		ProbabilityNode node = root;
+		for (int n = 0; n < sample.length; n++) {
+			if (node.children[sample[n]] != null) {
+				node = node.children[sample[n]];
+			} else {
+				break;
+			}
+		}
+
+		return node.nk;
+	}
+
 	protected double logStirling(double a, int n, int m) throws CacheExtensionException {
-		
+
 		if (a != lgCache.discountP) {
 			try {
 				// Do not forget to close to free resources!
 				lgCache.close();
 			} catch (Exception e) {
-				System.err.println("Closing Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Closing Log Stirling Cache Exception " + e.getMessage());
 				System.err.println("Throws as RuntimeException");
 				throw new RuntimeException(e);
 			}
-			
+
 			try {
-				lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints,  a);
+				lgCache = LogStirlingFactory.newLogStirlingGenerator(nDatapoints, a);
 			} catch (NoSuchFieldException | IllegalAccessException e) {
-				System.err.println("Log Stirling Cache Exception " + e.getMessage() );
+				System.err.println("Log Stirling Cache Exception " + e.getMessage());
 				System.err.println("Throws as RuntimeException");
 				throw new RuntimeException(e);
 			}
 		}
-		
+
 		double res = lgCache.query(n, m);
 		return res;
 
@@ -411,7 +475,14 @@ public class ProbabilityTree {
 
 	public String printTksAndNks() {
 		return root.printTksAndNksRecursively("root");
+	}
 
+	public String printPks() {
+		return root.printPksRecursively("root");
+	}
+
+	public String printFinalPks() {
+		return root.printAccumulatedPksRecursively("root");
 	}
 
 	public String printProbabilities() {
@@ -419,13 +490,15 @@ public class ProbabilityTree {
 	}
 
 	/**
-	 * This function samples a dataset from the learned conditional - really this shouldn't be used unless you have a very specific case
+	 * This function samples a dataset from the learned conditional - really this shouldn't be used unless you have a
+	 * very specific case
+	 * 
 	 * @param nDataPoints number of datapoints to generate
 	 * @return the generated dataset
 	 * @throws NoSuchAlgorithmException
 	 */
 	public int[][] sampleDataset(int nDataPoints) throws NoSuchAlgorithmException {
-		if(nValuesContioningVariables==null) {
+		if (nValuesContioningVariables == null) {
 			throw new RuntimeException("tree needs to be learnt before sampling a dataset from it");
 		}
 		int[][] data = new int[nDataPoints][nValuesContioningVariables.length + 1];
@@ -472,11 +545,11 @@ public class ProbabilityTree {
 			this.concentrationTyingStrategy = TyingStrategy.SINGLE;
 		}
 	}
-	
+
 	public String[] getValuesTarget() {
-		String[]values = new String[nValuesConditionedVariable];
+		String[] values = new String[nValuesConditionedVariable];
 		for (int j = 0; j < values.length; j++) {
-			values[j]=indexToValue.get(0).get(j);
+			values[j] = indexToValue.get(0).get(j);
 		}
 		return values;
 	}
@@ -484,6 +557,39 @@ public class ProbabilityTree {
 	private void recordAndAverageProbabilities() {
 		root.computeProbabilities();
 		root.recordAndAverageProbabilities();
+	}
+
+	// Penny's code (MEstimation + Ensemble)
+
+	// TODO: removal
+	/*
+	 * public void setParentOrder(ArrayList<Integer> parentsU) {
+	 * int[] temp = new int[parentsU.size()];
+	 * for (int i = 0; i < temp.length; i++) {
+	 * temp[i] = parentsU.get(i);
+	 * }
+	 * this.parentOrder = temp;
+	 * }
+	 * 
+	 * public int[] getParentOrder() {
+	 * return parentOrder;
+	 * }
+	 */
+
+	// TODO: Do we keep that ?
+	/*
+	 * public void setDiscount(double d) {
+	 * m_Discount = d;
+	 * }
+	 */
+
+	public void setBackOff(boolean back) {
+		this.root.setBackOff(back);
+
+	}
+
+	public void convertCountToProbs() {
+		root.convertCountToProbsBackOff();
 	}
 
 }

@@ -9,6 +9,12 @@ import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
 import hdp.tools.MathUtils;
 
 public class ProbabilityNode {
+
+	/**
+	* Max value for sampling TK
+	*/
+	public static final int MAX_TK = 10000;
+
 	/**
 	 * True count
 	 */
@@ -45,12 +51,13 @@ public class ProbabilityNode {
 	
 	int varNumberForBanchingChildren;
 	
-	int windowForSamplingTk=10;
+	public static int windowForSamplingTk=10;
 	double[]probabilityForWindowTk=new double[2*windowForSamplingTk+1];
 
 	ProbabilityNode parent;
 	ProbabilityNode[] children;
 	ProbabilityTree tree;
+	private boolean m_BackOff;
 
 	public ProbabilityNode(ProbabilityTree probabilityTree, int varNumberForBanchingChildren) {
 		this(probabilityTree, varNumberForBanchingChildren, false);
@@ -114,14 +121,18 @@ public class ProbabilityNode {
 			nk[values[0]]++;
 			marginal_nk++;
 		} else {
+			nk[values[0]]++;
+			marginal_nk++;
 			// else just call recursively
 			if (children == null) {
 				// -1 because values here has y as well
 				children = new ProbabilityNode[tree.nValuesContioningVariables[xIndexToUse - 1]];
 			}
+
 			if (children[values[xIndexToUse]] == null) {
 				children[values[xIndexToUse]] = new ProbabilityNode(this, xIndexToUse);
 			}
+			
 			children[values[xIndexToUse]].addObservation(values, xIndexToUse + 1);
 		}
 	}
@@ -149,6 +160,11 @@ public class ProbabilityNode {
 			 * Now the tks (and nks) from the children are correctly set. If a leaf, nk is already
 			 * set, so we only have to do it if not a leaf (by summing the tks from the children).
 			 */
+			
+			for(int i = 0; i < nk.length; i++){
+				nk[i]=0;
+			}
+			marginal_nk =0;
 			for (int c = 0; children != null && c < children.length; c++) {
 				if (children[c] != null) {
 					for (int k = 0; k < nk.length; k++) {
@@ -159,6 +175,7 @@ public class ProbabilityNode {
 				}
 			}
 		}
+		
 		// Now nks are set for current node; let's initialize the tks
 
 		if (parent == null) {
@@ -340,6 +357,7 @@ public class ProbabilityNode {
 			System.exit(1);
 		}
 		
+
 		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
 		
 		// partial score difference for parent
@@ -399,6 +417,10 @@ public class ProbabilityNode {
 					int valTk = tk[k] - windowForSamplingTk;
 					// maxTk can't be larger than nk[k]
 					int maxTk = Math.min(tk[k] + windowForSamplingTk, nk[k]);
+					
+					// Limit maxTk for big dataset
+					if(maxTk>MAX_TK) {maxTk = MAX_TK;}
+					
 					int index = 0;
 					while(valTk<1){//move to first allowed position
 						probabilityForWindowTk[index]=Double.NEGATIVE_INFINITY;
@@ -434,8 +456,6 @@ public class ProbabilityNode {
 						}
 					}
 //					System.out.println(Arrays.toString(probabilityForWindowTk));
-					
-//					System.out.println(Arrays.toString(probabilityForWindowTk));
 					//now sampling tk according to probability vector
 					int chosenIndex = MathUtils.sampleFromMultinomial(tree.rng, probabilityForWindowTk);
 					
@@ -451,8 +471,7 @@ public class ProbabilityNode {
 //						System.out.println("chosen val="+valueTkChosen+" at index "+chosenIndex);
 //						System.out.println("before\n"+treeBefore);
 //						System.out.println("after\n"+tree.printTksAndNks());
-//					}
-						
+//					}	
 				}
 			}
 
@@ -558,6 +577,67 @@ public class ProbabilityNode {
 		return tree.nValuesConditionedVariable;
 	}
 
+
+
+	// --- --- --- Penny addition for MEstimation
+	public void convertCountToProbs() {		
+		if (isLeaf()) {
+			// if at the leaf, then count to probabilities
+			pkAveraged = new double[nk.length];
+			for(int i = 0; i < nk.length; i++){
+				pkAveraged[i] = MathUtils.MEsti(nk[i], marginal_nk, nk.length);
+			}
+		} else {
+			// else just call recursively
+			if (children != null) {
+				for(int i = 0; i < children.length; i++){
+					if(children[i] != null){
+						children[i].convertCountToProbs();
+					}
+				}
+			}	
+		}
+	}
+
+	public void convertCountToProbsBackOff() {
+		
+		pkAveraged = new double[nk.length];
+		if(MathUtils.sum(nk) != 0){
+			for(int i = 0; i < nk.length; i++){
+				pkAveraged[i] = MathUtils.MEsti(nk[i], marginal_nk, nk.length);
+			}
+		}else{
+			if(this.m_BackOff){
+				pkAveraged = this.parent.pkAveraged;
+			}else{
+				for(int i = 0; i < nk.length; i++){
+					pkAveraged[i] = (double)1/nk.length;
+				}
+			}
+		}
+		
+		if(children != null){
+			for(int i = 0; i < children.length; i++){
+				if(children[i] != null){
+					children[i].convertCountToProbsBackOff();
+				}
+			}
+		}
+	}
+
+	public void setBackOff(boolean back) {
+		this.m_BackOff = back;
+		
+		if(children != null){
+			for(int i = 0; i < children.length; i++){
+				if(children[i] != null){
+					children[i].setBackOff(back);
+				}
+			}
+		}
+	}
+	// --- --- --- END OF Penny addition for MEstimation
+	
 	/**
 	 * This function computes the values of the smoothed conditional probabilities as a function of
 	 * (nk,tk,c,d) and of the parent probability. <br/>
@@ -602,7 +682,7 @@ public class ProbabilityNode {
 	 * avoid underflow
 	 */
 	protected void recordAndAverageProbabilities() {
-		// in this method, pkAccumulated stores the log sum
+		// in this method, pkAveraged stores the log sum
 		if (this.pkAveraged == null) {
 			pkAveraged = new double[nk.length];
 			nPkAccumulated = 1;
