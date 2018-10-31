@@ -284,6 +284,12 @@ public class ProbabilityTree {
 		nDatapoints = data.length;
 		this.smooth();
 	}
+	
+	// TODO: to check if we keep that (needed by wdBayesOnlinePYP)
+	public void addObservation(int[] datapoint) {
+		root.addObservation(datapoint, 1);
+		nDatapoints++;
+	}
 
 	/**
 	 * Add the observational data for the leaves Data is stored in a integer format
