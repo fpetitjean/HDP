@@ -222,38 +222,6 @@ public class ProbabilityNode {
 
 	}
 
-	/**
-	 * This method accumulates the pks so that the final result is averaged over several successive
-	 * iterations of the Gibbs sampling process
-	 */
-	protected void recordAndAverageProbabilities() {
-
-		if (pkAveraged == null) {
-			pkAveraged = new double[nk.length];
-			nPkAccumulated = 0;
-		}
-		double sum = 0.0;
-		for (int k = 0; k < pkAveraged.length; k++) {
-			pkAveraged[k] = pkAveraged[k] * nPkAccumulated + pk[k];
-			pkAveraged[k] /= (nPkAccumulated+1);
-			if (pkAveraged[k] == 0)
-				pkAveraged[k] = 1e-75;
-			sum += pkAveraged[k];
-		}
-		for (int k = 0; k < pkAveraged.length; k++) {
-			pkAveraged[k] /= sum;
-		}
-		nPkAccumulated++;
-
-		if (children != null) {
-			for (int c = 0; c < children.length; c++) {
-				if (children[c] != null) {
-					children[c].recordAndAverageProbabilities();
-				}
-			}
-		}
-	}
-
 	public String printNksRecursively(String prefix) {
 		String res = "";
 
@@ -633,7 +601,7 @@ public class ProbabilityNode {
 	 * several successive iterations of the Gibbs sampling process in log space to
 	 * avoid underflow
 	 */
-	protected void addRecordedProbabilities() {
+	protected void recordAndAverageProbabilities() {
 		// in this method, pkAccumulated stores the log sum
 		if (this.pkAveraged == null) {
 			pkAveraged = new double[nk.length];
@@ -654,7 +622,7 @@ public class ProbabilityNode {
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
-					children[c].addRecordedProbabilities();
+					children[c].recordAndAverageProbabilities();
 				}
 			}
 		}

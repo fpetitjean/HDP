@@ -178,7 +178,7 @@ public class ProbabilityTree {
 			}
 
 			if (iter >= nBurnIn) {
-				this.recordProbabilities();
+				this.recordAndAverageProbabilities();
 			}
 
 		}
@@ -481,9 +481,9 @@ public class ProbabilityTree {
 		return values;
 	}
 
-	private void recordProbabilities() {
+	private void recordAndAverageProbabilities() {
 		root.computeProbabilities();
-		root.addRecordedProbabilities();
+		root.recordAndAverageProbabilities();
 	}
 
 }
