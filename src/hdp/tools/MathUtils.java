@@ -114,11 +114,6 @@ public class MathUtils {
 		}
 		return mEsti;
 	}
-
-	public static double MEsti(double freq1, double freq2) {
-		double mEsti = freq1 / freq2;
-		return mEsti;
-	}
 	
 	 public static int sum(int[] int_array) {
 		 int acc = 0;
