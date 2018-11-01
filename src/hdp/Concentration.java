@@ -8,29 +8,29 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.FastMath;
 
 public class Concentration {
-	private double priorRate=1.0;
+	private double priorRate = 1.0;
 	private static final double priorShape = 2.0;
 	private double c;
 	ArrayList<Float> logGammaRatioCache;
 	int indexLastValidLogGammaRatio;
 	private double logC;
-	
+
 	ArrayList<ProbabilityNode> tiedNodes;
 
 	public Concentration(double c) {
 		setConcentration(c);
-		this.priorRate = priorShape/c;
+		this.priorRate = priorShape / c;
 		computeLogGammaRatioCache();
 	}
-	
-	public Concentration(){
+
+	public Concentration() {
 		this(2.0);
 	}
-	
+
 	public Concentration(int nOutcomesForTarget) {
-		this(priorShape/nOutcomesForTarget);
+		this(priorShape / nOutcomesForTarget);
 	}
-	
+
 	public void addNode(ProbabilityNode node) {
 		if (tiedNodes == null) {
 			tiedNodes = new ArrayList<>();
@@ -89,12 +89,12 @@ public class Concentration {
 		this.logC = FastMath.log(c);
 		computeLogGammaRatioCache();
 	}
-	
-	public double getConcentration(){
+
+	public double getConcentration() {
 		return this.c;
 	}
-	
-	public double getLogConcentration(){
+
+	public double getLogConcentration() {
 		return this.logC;
 	}
 
@@ -102,19 +102,12 @@ public class Concentration {
 		if (n > indexLastValidLogGammaRatio) {
 			extendLogGammaRatioCache(n + 50);
 		}
-		// assert (Math.abs(logGammaRatioCache.get(n) -
-		// MathUtils.logGammaRatio(c, n)) < 0.01);
-		// if(Math.abs(logGammaRatioCache.get(n)-MathUtils.logGammaRatio(c,
-		// n))>0.01){
-		// System.err.println(logGammaRatioCache.get(n)+" vs
-		// "+MathUtils.logGammaRatio(c, n));
-		// }
 		return logGammaRatioCache.get(n);
 	}
 
 	/**
-	 * This function samples the value of C for this node. See Lan Du's PhD
-	 * thesis about sampling concentration (Chapter 5 - Section 4.3)
+	 * This function samples the value of C for this node. See Lan Du's PhD thesis
+	 * about sampling concentration (Chapter 5 - Section 4.3)
 	 */
 	public void sample(RandomGenerator rng) {
 		double rate = priorRate;
@@ -130,8 +123,8 @@ public class Concentration {
 		GammaDistribution gammaD = new GammaDistribution(rng, sumTk + priorShape, scale);
 		this.setConcentration(gammaD.sample());
 	}
-	
-	public String toString(){
-		return ""+c;
+
+	public String toString() {
+		return "" + c;
 	}
 }

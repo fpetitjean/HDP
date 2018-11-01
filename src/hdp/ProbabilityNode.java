@@ -11,8 +11,8 @@ import hdp.tools.MathUtils;
 public class ProbabilityNode {
 
 	/**
-	* Max value for sampling TK
-	*/
+	 * Max value for sampling TK
+	 */
 	public static final int MAX_TK = 10000;
 
 	/**
@@ -48,11 +48,11 @@ public class ProbabilityNode {
 	int nPkAccumulated;
 
 	Concentration c;
-	
+
 	int varNumberForBanchingChildren;
-	
-	public static int windowForSamplingTk=10;
-	double[]probabilityForWindowTk=new double[2*windowForSamplingTk+1];
+
+	public static int windowForSamplingTk = 10;
+	double[] probabilityForWindowTk = new double[2 * windowForSamplingTk + 1];
 
 	ProbabilityNode parent;
 	ProbabilityNode[] children;
@@ -62,8 +62,7 @@ public class ProbabilityNode {
 		this(probabilityTree, varNumberForBanchingChildren, false);
 	}
 
-	public ProbabilityNode(ProbabilityTree probabilityTree, int varNumberForBanchingChildren,
-			boolean createFullTree) {
+	public ProbabilityNode(ProbabilityTree probabilityTree, int varNumberForBanchingChildren, boolean createFullTree) {
 		this.tree = probabilityTree;
 		int nValuesY = tree.nValuesConditionedVariable;
 		int[] nValuesXs = tree.nValuesContioningVariables;
@@ -74,8 +73,7 @@ public class ProbabilityNode {
 		if (createFullTree && varNumberForBanchingChildren + 1 <= tree.getNXs()) {
 			children = new ProbabilityNode[nValuesXs[varNumberForBanchingChildren]];
 			for (int i = 0; i < children.length; i++) {
-				children[i] = new ProbabilityNode(this, varNumberForBanchingChildren + 1,
-						createFullTree);
+				children[i] = new ProbabilityNode(this, varNumberForBanchingChildren + 1, createFullTree);
 			}
 		}
 
@@ -85,8 +83,7 @@ public class ProbabilityNode {
 		this(parent, varNumberForBanchingChildren, false);
 	}
 
-	public ProbabilityNode(ProbabilityNode parent, int varNumberForBanchingChildren,
-			boolean createFullTree) {
+	public ProbabilityNode(ProbabilityNode parent, int varNumberForBanchingChildren, boolean createFullTree) {
 		this.parent = parent;
 		this.tree = parent.tree;
 		int nValuesY = tree.nValuesConditionedVariable;
@@ -99,8 +96,7 @@ public class ProbabilityNode {
 			children = new ProbabilityNode[nValuesXs[varNumberForBanchingChildren]];
 
 			for (int i = 0; i < children.length; i++) {
-				children[i] = new ProbabilityNode(this, varNumberForBanchingChildren + 1,
-						createFullTree);
+				children[i] = new ProbabilityNode(this, varNumberForBanchingChildren + 1, createFullTree);
 			}
 		}
 
@@ -109,10 +105,10 @@ public class ProbabilityNode {
 	/**
 	 * Add observation to the leaves in the associated subtree
 	 * 
-	 * @param values
-	 *            the set of values for the observation; the first is the target (y)
-	 * @param xIndexToUse
-	 *            the index of the covariate to use in values; first covariate is at index 1
+	 * @param values      the set of values for the observation; the first is the
+	 *                    target (y)
+	 * @param xIndexToUse the index of the covariate to use in values; first
+	 *                    covariate is at index 1
 	 */
 	public void addObservation(int[] values, int xIndexToUse) {
 		if (isLeaf()) {
@@ -131,7 +127,7 @@ public class ProbabilityNode {
 			if (children[values[xIndexToUse]] == null) {
 				children[values[xIndexToUse]] = new ProbabilityNode(this, xIndexToUse);
 			}
-			
+
 			children[values[xIndexToUse]].addObservation(values, xIndexToUse + 1);
 		}
 	}
@@ -141,9 +137,10 @@ public class ProbabilityNode {
 	}
 
 	/**
-	 * This function should be called after have seen all the data. - At the leaves, nk already
-	 * exist so we just sum create tk respecting the constraints. - At the intermediate nodes, we
-	 * first add the tks from the children to form the current nk and then create the tk
+	 * This function should be called after have seen all the data. - At the leaves,
+	 * nk already exist so we just sum create tk respecting the constraints. - At
+	 * the intermediate nodes, we first add the tks from the children to form the
+	 * current nk and then create the tk
 	 */
 	public void prepareForSamplingTk() {
 		if (children != null) {
@@ -156,14 +153,15 @@ public class ProbabilityNode {
 			}
 
 			/*
-			 * Now the tks (and nks) from the children are correctly set. If a leaf, nk is already
-			 * set, so we only have to do it if not a leaf (by summing the tks from the children).
+			 * Now the tks (and nks) from the children are correctly set. If a leaf, nk is
+			 * already set, so we only have to do it if not a leaf (by summing the tks from
+			 * the children).
 			 */
-			
-			for(int i = 0; i < nk.length; i++){
-				nk[i]=0;
+
+			for (int i = 0; i < nk.length; i++) {
+				nk[i] = 0;
 			}
-			marginal_nk =0;
+			marginal_nk = 0;
 			for (int c = 0; children != null && c < children.length; c++) {
 				if (children[c] != null) {
 					for (int k = 0; k < nk.length; k++) {
@@ -174,7 +172,7 @@ public class ProbabilityNode {
 				}
 			}
 		}
-		
+
 		// Now nks are set for current node; let's initialize the tks
 
 		if (parent == null) {
@@ -188,11 +186,9 @@ public class ProbabilityNode {
 				if (nk[k] <= 1) {
 					tk[k] = nk[k];
 				} else {
-					tk[k] = (int) Math.max(
-							1,
-							Math.floor(concentration
-									* (tree.digamma(concentration + nk[k]) - tree.digamma(concentration))));
-					
+					tk[k] = (int) Math.max(1, Math.floor(
+							concentration * (tree.digamma(concentration + nk[k]) - tree.digamma(concentration))));
+
 				}
 				marginal_tk += tk[k];
 			}
@@ -200,30 +196,28 @@ public class ProbabilityNode {
 	}
 
 	/**
-	 * Computes the log-likelihood function for the tree under the current node (included)
+	 * Computes the log-likelihood function for the tree under the current node
+	 * (included)
 	 * 
 	 * @return
 	 */
 	public double logScoreSubTree() {
 		double res = 0.0;
 		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
-//		System.out.println(res+" c="+concentration+" T="+marginal_tk);
-//		res -= MathUtils.logGammaRatio(concentration, marginal_nk);
-//		System.out.println(res+" c="+concentration+" N="+marginal_nk);
 		res -= c.logGammaRatioForConcentration(marginal_nk);
 
 		// Now nks are set for current node; let's initialize the tks
 		for (int k = 0; k < nk.length; k++) {
-			
+
 			try {
 				res += tree.logStirling(0.0, nk[k], tk[k]);
 			} catch (CacheExtensionException e) {
-				System.err.println("Cannot extends the cache to querry S("+nk[k]+", "+tk[k]+")");
+				System.err.println("Cannot extends the cache to querry S(" + nk[k] + ", " + tk[k] + ")");
 				e.printStackTrace();
 				System.exit(1);
 			}
-			
-			if(res==Double.NEGATIVE_INFINITY){
+
+			if (res == Double.NEGATIVE_INFINITY) {
 				throw new RuntimeException("log stirling return neg infty");
 			}
 		}
@@ -268,8 +262,7 @@ public class ProbabilityNode {
 		String res = "";
 
 		// root node
-		res += prefix + ":tk=" + Arrays.toString(tk) + " :nk=" + Arrays.toString(nk) + " :c=" + this.c
-				+ "\n";
+		res += prefix + ":tk=" + Arrays.toString(tk) + " :nk=" + Arrays.toString(nk) + " :c=" + this.c + "\n";
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
@@ -326,70 +319,62 @@ public class ProbabilityNode {
 	/**
 	 * add a value to the current one of the tk[k]
 	 * 
-	 * @param k the index of the value to change in tk
-	 * @param the value to set tk 
-	 * @return the non-normalized posterior probability at this point; negative-infinity if value not authorized
+	 * @param k   the index of the value to change in tk
+	 * @param the value to set tk
+	 * @return the non-normalized posterior probability at this point;
+	 *         negative-infinity if value not authorized
 	 */
 	protected double setTk(int k, int val) {
-		//how much to increment (or decrement tk by)
-		int incVal = val-tk[k];
+		// how much to increment (or decrement tk by)
+		int incVal = val - tk[k];
 		if (incVal < 0) {
 			// if decrement, then have to check that valid for the
 			// parent
-			if (parent != null && incVal<0 && (parent.nk[k] + incVal) < parent.tk[k]) {
+			if (parent != null && incVal < 0 && (parent.nk[k] + incVal) < parent.tk[k]) {
 				// not valid; skip
 				return Double.NEGATIVE_INFINITY;
 			}
 		}
-		
+
 		tk[k] += incVal;
 		marginal_tk += incVal;
-		
+
 		double res = 0.0;
 
-		//partial score difference for current node
+		// partial score difference for current node
 		try {
 			res += tree.logStirling(0.0, nk[k], tk[k]);
 		} catch (CacheExtensionException e) {
-			System.err.println("Cannot extends the cache to querry S("+nk[k]+", "+tk[k]+")");
+			System.err.println("Cannot extends the cache to querry S(" + nk[k] + ", " + tk[k] + ")");
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
 
 		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
-		
+
 		// partial score difference for parent
 		if (parent != null) {
 			parent.nk[k] += incVal;
 			parent.marginal_nk += incVal;
-			
-			
+
 			try {
-				res += tree.logStirling(0.0, parent.nk[k],  parent.tk[k]);
+				res += tree.logStirling(0.0, parent.nk[k], parent.tk[k]);
 			} catch (CacheExtensionException e) {
-				System.err.println("Cannot extends the cache to querry S("+nk[k]+", "+tk[k]+")");
+				System.err.println("Cannot extends the cache to querry S(" + nk[k] + ", " + tk[k] + ")");
 				e.printStackTrace();
 				System.exit(1);
 			}
-			
-			
-//			res -= MathUtils.logGammaRatio(parent.getConcentration(), parent.marginal_nk);
+
 			res -= parent.c.logGammaRatioForConcentration(parent.marginal_nk);
 		}
-		
+
 		return res;
-//		return tree.logScoreTree();
-			
+
 	}
 
 	public void sampleTks() {
-//		System.out.println("tk="+Arrays.toString(tk));
 		if (parent == null) {
-			/*
-			 * case for root: no sampling, t is either 0 or 1
-			 */
-//			System.out.println("sampling root");
+			// case for root: no sampling, t is either 0 or 1
 			for (int k = 0; k < tk.length; k++) {
 				// Wray says this is GEM
 				int t = (nk[k] == 0) ? 0 : 1;
@@ -397,10 +382,6 @@ public class ProbabilityNode {
 			}
 		} else {
 			for (int k = 0; k < tk.length; k++) {
-//				double startingScore = tree.logScoreTree();
-//				String treeBefore = tree.printTksAndNks();
-//				 System.out.println("starting score = "+tree.logScoreTree()+" with tk="+Arrays.toString(tk));
-				// System.out.println("previous tk["+k+"]="+oldTk);
 				if (nk[k] <= 1) {
 					/*
 					 * can't sample anything, constraints say that tk[k] must be nk[k] just have to
@@ -408,83 +389,66 @@ public class ProbabilityNode {
 					 * just changed)
 					 */
 					setTk(k, nk[k]);
-//					System.out.println("can't sample; should be set to " + nk[k] + " tk=" + tk[k]);
 				} else {
 					// sample case
-					//starting point
+					// starting point
 					int oldTk = tk[k];
 					int valTk = tk[k] - windowForSamplingTk;
 					// maxTk can't be larger than nk[k]
 					int maxTk = Math.min(tk[k] + windowForSamplingTk, nk[k]);
-					
+
 					// Limit maxTk for big dataset
-					if(maxTk>MAX_TK) {maxTk = MAX_TK;}
-					
+					if (maxTk > MAX_TK) {
+						maxTk = MAX_TK;
+					}
+
 					int index = 0;
-					while(valTk<1){//move to first allowed position
-						probabilityForWindowTk[index]=Double.NEGATIVE_INFINITY;
+					while (valTk < 1) {// move to first allowed position
+						probabilityForWindowTk[index] = Double.NEGATIVE_INFINITY;
 						valTk++;
 						index++;
 					}
 					boolean hasOneValue = false;
-					while(valTk <= maxTk){//now fill posterior
-						double logProbDifference =setTk(k, valTk);
-						probabilityForWindowTk[index]=logProbDifference;
-						hasOneValue=(hasOneValue||probabilityForWindowTk[index]!=Double.NEGATIVE_INFINITY);
+					while (valTk <= maxTk) {// now fill posterior
+						double logProbDifference = setTk(k, valTk);
+						probabilityForWindowTk[index] = logProbDifference;
+						hasOneValue = (hasOneValue || probabilityForWindowTk[index] != Double.NEGATIVE_INFINITY);
 						index++;
 						valTk++;
 					}
-					if(!hasOneValue){
+					if (!hasOneValue) {
 						setTk(k, oldTk);
 						continue;
 					}
-					for(;index<probabilityForWindowTk.length;index++){
-						//finish filling with neg infty
-						probabilityForWindowTk[index]=Double.NEGATIVE_INFINITY;
+					for (; index < probabilityForWindowTk.length; index++) {
+						// finish filling with neg infty
+						probabilityForWindowTk[index] = Double.NEGATIVE_INFINITY;
 					}
-					
-					//now lognormalize probabilityForWindowTk and exponentiate
-//					System.out.println(Arrays.toString(probabilityForWindowTk));
+
+					// now lognormalize probabilityForWindowTk and exponentiate
 					MathUtils.normalizeInLogDomain(probabilityForWindowTk);
-//					System.out.println(Arrays.toString(probabilityForWindowTk));
 					MathUtils.exp(probabilityForWindowTk);
-					
+
 					for (int j = 0; j < probabilityForWindowTk.length; j++) {
-						if(Double.isNaN(probabilityForWindowTk[j])){
-							System.err.println("problem "+Arrays.toString(probabilityForWindowTk));
+						if (Double.isNaN(probabilityForWindowTk[j])) {
+							System.err.println("problem " + Arrays.toString(probabilityForWindowTk));
 						}
 					}
-//					System.out.println(Arrays.toString(probabilityForWindowTk));
-					//now sampling tk according to probability vector
+					// now sampling tk according to probability vector
 					int chosenIndex = MathUtils.sampleFromMultinomial(tree.rng, probabilityForWindowTk);
-					
+
 					// assign chosen tk
-					int valueTkChosen = oldTk-windowForSamplingTk+chosenIndex;
-//					System.out.println("sampled element "+chosenIndex+" ie tk="+valueTkChosen+" with p="+probabilityForWindowTk[chosenIndex]);
+					int valueTkChosen = oldTk - windowForSamplingTk + chosenIndex;
 					setTk(k, valueTkChosen);
-//					double finishingScore = tree.logScoreTree();
-//					if(finishingScore<startingScore){
-//						System.out.println("starting score = "+startingScore+" with tk="+Arrays.toString(tk));
-//						System.out.println("finishing score = "+finishingScore+" with tk="+Arrays.toString(tk));
-//						System.out.println(Arrays.toString(probabilityForWindowTk));
-//						System.out.println("chosen val="+valueTkChosen+" at index "+chosenIndex);
-//						System.out.println("before\n"+treeBefore);
-//						System.out.println("after\n"+tree.printTksAndNks());
-//					}	
 				}
 			}
-
 		}
-
 	}
 
-	
-
-	
-	public double getConcentration(){
-		if(c==null){
+	public double getConcentration() {
+		if (c == null) {
 			return 2.0;
-		}else{
+		} else {
 			return c.getConcentration();
 		}
 	}
@@ -492,7 +456,6 @@ public class ProbabilityNode {
 	public boolean checkNkSumTks() {
 		if (children != null) {
 			for (int k = 0; k < nk.length; k++) {
-				// System.out.println("tk["+k+"]="+tk[k]+"\tnk["+k+"]="+nk[k]);
 				int sumTkChildren = 0;
 				for (int c = 0; c < children.length; c++) {
 					if (children[c] != null) {
@@ -535,7 +498,7 @@ public class ProbabilityNode {
 			pk = new double[tk.length];
 		}
 		// sample some concentration
-		double parentConcentration = (parent==null)?2.0:parent.getConcentration();
+		double parentConcentration = (parent == null) ? 2.0 : parent.getConcentration();
 		double[] parentProbs;
 		if (parent == null) {
 			// root case
@@ -549,15 +512,15 @@ public class ProbabilityNode {
 		// now sampling pk from parentPk and concentration
 		double sumPk = 0.0;
 		for (int k = 0; k < pk.length; k++) {
-			pk[k] = rdg.nextGamma(Math.max(parentProbs[k] * parentConcentration,1e-75), 1.0);
+			pk[k] = rdg.nextGamma(Math.max(parentProbs[k] * parentConcentration, 1e-75), 1.0);
 			sumPk += pk[k];
 		}
 		for (int k = 0; k < pk.length; k++) {
 			pk[k] /= sumPk;
 		}
-		
-		if(children!=null){
-			//choose concentration for this (to be used by children
+
+		if (children != null) {
+			// choose concentration for this (to be used by children)
 			c = new Concentration();
 			for (int c = 0; c < children.length; c++) {
 				if (children[c] != null) {
@@ -568,69 +531,67 @@ public class ProbabilityNode {
 			}
 			c.sample(rdg.getRandomGenerator());
 		}
-		
 
 	}
-	
-	public int getNOutcomesTarget(){
+
+	public int getNOutcomesTarget() {
 		return tree.nValuesConditionedVariable;
 	}
 
+	// --- --- --- MEstimation
 
-
-	// --- --- --- Penny addition for MEstimation
-	public void convertCountToProbs() {		
+	public void convertCountToProbs() {
 		if (isLeaf()) {
 			// if at the leaf, then count to probabilities
 			pkAveraged = new double[nk.length];
-			for(int i = 0; i < nk.length; i++){
+			for (int i = 0; i < nk.length; i++) {
 				pkAveraged[i] = MathUtils.MEsti(nk[i], marginal_nk, nk.length);
 			}
 		} else {
 			// else just call recursively
 			if (children != null) {
-				for(int i = 0; i < children.length; i++){
-					if(children[i] != null){
+				for (int i = 0; i < children.length; i++) {
+					if (children[i] != null) {
 						children[i].convertCountToProbs();
 					}
 				}
-			}	
+			}
 		}
 	}
 
 	public void convertCountToProbsBackOff(boolean m_BackOff) {
-		
 		pkAveraged = new double[nk.length];
-		if(MathUtils.sum(nk) != 0){
-			for(int i = 0; i < nk.length; i++){
+		if (MathUtils.sum(nk) != 0) {
+			for (int i = 0; i < nk.length; i++) {
 				pkAveraged[i] = MathUtils.MEsti(nk[i], marginal_nk, nk.length);
 			}
-		}else{
-			if(m_BackOff){
+		} else {
+			if (m_BackOff) {
 				// Here, this.parent is never null because sum(nk) is never 0 for the root
 				pkAveraged = this.parent.pkAveraged;
-			}else{
-				for(int i = 0; i < nk.length; i++){
-					pkAveraged[i] = (double)1/nk.length;
+			} else {
+				for (int i = 0; i < nk.length; i++) {
+					pkAveraged[i] = (double) 1 / nk.length;
 				}
 			}
 		}
-		
-		if(children != null){
-			for(int i = 0; i < children.length; i++){
-				if(children[i] != null){
+
+		if (children != null) {
+			for (int i = 0; i < children.length; i++) {
+				if (children[i] != null) {
 					children[i].convertCountToProbsBackOff(m_BackOff);
 				}
 			}
 		}
 	}
 
-	// --- --- --- END OF Penny addition for MEstimation
-	
+	// --- --- --- END OF MEstimation
+
 	/**
-	 * This function computes the values of the smoothed conditional probabilities as a function of
-	 * (nk,tk,c,d) and of the parent probability. <br/>
-	 * p_k = ( ( nk - tk*d ) / (N + c) ) ) + ( ( c + T*d ) / (N + c) ) ) * p^{parent}_k
+	 * This function computes the values of the smoothed conditional probabilities
+	 * as a function of (nk,tk,c,d) and of the parent probability. <br/>
+	 * p_k = ( ( nk - tk*d ) / (N + c) ) ) + ( ( c + T*d ) / (N + c) ) ) *
+	 * p^{parent}_k
 	 * 
 	 * @see <a href=
 	 *      "http://topicmodels.org/2014/11/13/training-a-pitman-yor-process-tree-with-observed-data-at-the-leaves-part-2/">
@@ -644,7 +605,8 @@ public class ProbabilityNode {
 		double concentration = getConcentration();
 		double sum = 0.0;
 		for (int k = 0; k < pk.length; k++) {
-			double parentProb = (this.parent != null) ? this.parent.pk[k] : 1.0 / pk.length;//uniform parent if root node
+			double parentProb = (this.parent != null) ? this.parent.pk[k] : 1.0 / pk.length;// uniform parent if root
+																							// node
 
 			pk[k] = (nk[k]) / (marginal_nk + concentration)
 					+ (concentration) * parentProb / (marginal_nk + concentration);
@@ -679,14 +641,14 @@ public class ProbabilityNode {
 
 		double sum = 0.0;
 		for (int k = 0; k < pkAveraged.length; k++) {
-				pkAveraged[k] += (pk[k]-pkAveraged[k])/nPkAccumulated;
-				sum += pkAveraged[k];
+			pkAveraged[k] += (pk[k] - pkAveraged[k]) / nPkAccumulated;
+			sum += pkAveraged[k];
 		}
 		// normalize
 		for (int k = 0; k < pk.length; k++) {
 			pkAveraged[k] /= sum;
 		}
-		nPkAccumulated ++;
+		nPkAccumulated++;
 
 		if (children != null) {
 			for (int c = 0; c < children.length; c++) {
@@ -696,5 +658,5 @@ public class ProbabilityNode {
 			}
 		}
 	}
-	
+
 }

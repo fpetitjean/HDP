@@ -1,7 +1,9 @@
 package hdp;
 
 /**
- * Represents different tying strategies for parameters of the PYP process (concentration, maybe discount at some point) 
+ * Represents different tying strategies for parameters of the PYP process
+ * (concentration, maybe discount at some point)
+ * 
  * @author Francois Petitjean
  */
 public enum TyingStrategy {
@@ -13,7 +15,7 @@ public enum TyingStrategy {
 	 * All nodes sharing the same parents are tied.
 	 */
 	SAME_PARENT,
-	
+
 	/**
 	 * All nodes at the same level are tied.
 	 */
