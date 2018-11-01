@@ -37,72 +37,51 @@ public class ProbabilityTree {
 	protected int nDatapoints;
 	boolean createFullTree = false;
 
-	// Penny's MEstimation
-	// TODO: never used in hdp! to check!
-	private boolean m_BackOff;
-
-	// Penny's Ensemble
-	// TODO: removal
-	// private int[] parentOrder;
-
 	// Constructors
 
 	public ProbabilityTree() {
-		init(false, 5000, TyingStrategy.LEVEL, 5);
+		init(-1,null,false, 5000, TyingStrategy.LEVEL, 5, false);
 	}
 
 	public ProbabilityTree(boolean createFullTree) {
-		init(createFullTree, 5000, TyingStrategy.LEVEL, 5);
+		init(-1,null,createFullTree, 5000, TyingStrategy.LEVEL, 5,false);
 	}
 
-	public ProbabilityTree(int m_Iterations, int m_Tying) {
-		setConcentrationTyingStrategy(m_Tying);
-		init(false, m_Iterations, this.concentrationTyingStrategy, 5);
+	public ProbabilityTree(int m_Iterations,TyingStrategy m_Tying) {
+		init(-1,null,false, 5000, m_Tying, 5,false);
 	}
 
 	public ProbabilityTree(boolean createFullTree, int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
-		init(createFullTree, m_Iterations, m_Tying, frequencySamplingC);
+		init(-1,null,createFullTree, m_Iterations, m_Tying, frequencySamplingC,false);
 	}
-
-	protected void init(boolean createFullTree, int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
-		this.nIterGibbs = m_Iterations;
-		setConcentrationTyingStrategy(m_Tying);
-		this.nBurnIn = Math.min(1000, nIterGibbs / 10);
-		this.frequencySamplingC = frequencySamplingC;
-		this.createFullTree = false;
-	}
-
-	// --- --- --- 'Old' Constructors
-	// TODO: cleanup ?!
 
 	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree) {
-		init(nValuesConditionedVariable, nValuesConditioningVariables, createFullTree, 5000, TyingStrategy.LEVEL, 5);
+		init(nValuesConditionedVariable, nValuesConditioningVariables, createFullTree, 5000, TyingStrategy.LEVEL, 5,true);
 	}
 
 	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, int m_Iterations,
 			int m_Tying) {
-		setConcentrationTyingStrategy(m_Tying);
 		init(nValuesConditionedVariable, nValuesConditioningVariables, false, m_Iterations,
-				this.concentrationTyingStrategy, 5);
+				this.concentrationTyingStrategy, 5,true);
 	}
 
 	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree,
 			int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC, boolean usePYP, int frequencySamplingD) {
 		init(nValuesConditionedVariable, nValuesConditioningVariables, createFullTree, m_Iterations, m_Tying,
-				frequencySamplingC);
+				frequencySamplingC,true);
 	}
 
 	protected void init(int nValuesConditionedVariable, int[] nValuesConditioningVariables, boolean createFullTree,
-			int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
+			int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC, boolean initRoot) {
 		this.nValuesConditionedVariable = nValuesConditionedVariable;
 		this.nValuesContioningVariables = nValuesConditioningVariables;
 		this.nIterGibbs = m_Iterations;
 		setConcentrationTyingStrategy(m_Tying);
 		this.nBurnIn = Math.min(1000, nIterGibbs / 10);
 		this.frequencySamplingC = frequencySamplingC;
-		root = new ProbabilityNode(this, 0, createFullTree);
+		if(initRoot)
+			root = new ProbabilityNode(this, 0, createFullTree);
 	}
-	// --- --- --- END OF Old Constructor
 
 	public int getNXs() {
 		return nValuesContioningVariables.length;
@@ -285,11 +264,11 @@ public class ProbabilityTree {
 		this.smooth();
 	}
 	
-	// TODO: to check if we keep that (needed by wdBayesOnlinePYP)
 	public void addObservation(int[] datapoint) {
 		root.addObservation(datapoint, 1);
 		nDatapoints++;
 	}
+	
 
 	/**
 	 * Add the observational data for the leaves Data is stored in a integer format
@@ -357,14 +336,8 @@ public class ProbabilityTree {
 		this.smooth();
 	}
 
-	// TODO: do we keep that?
-	/*
-	 * public void addObservation(int[] datapoint) {
-	 * root.addObservation(datapoint, 1);
-	 * nDatapoints++;
-	 * }
-	 */
 
+	 
 	public void smoothTree() {
 
 		if (lgCache == null)
@@ -564,38 +537,9 @@ public class ProbabilityTree {
 		root.computeProbabilities();
 		root.recordAndAverageProbabilities();
 	}
-
-	// Penny's code (MEstimation + Ensemble)
-
-	// TODO: removal
-	/*
-	 * public void setParentOrder(ArrayList<Integer> parentsU) {
-	 * int[] temp = new int[parentsU.size()];
-	 * for (int i = 0; i < temp.length; i++) {
-	 * temp[i] = parentsU.get(i);
-	 * }
-	 * this.parentOrder = temp;
-	 * }
-	 * 
-	 * public int[] getParentOrder() {
-	 * return parentOrder;
-	 * }
-	 */
-
-	// TODO: Do we keep that ?
-	/*
-	 * public void setDiscount(double d) {
-	 * m_Discount = d;
-	 * }
-	 */
-
-	public void setBackOff(boolean back) {
-		this.root.setBackOff(back);
-
-	}
-
-	public void convertCountToProbs() {
-		root.convertCountToProbsBackOff();
+	
+	public void convertCountToProbs(boolean m_BackOff) {
+		root.convertCountToProbsBackOff(m_BackOff);
 	}
 
 }

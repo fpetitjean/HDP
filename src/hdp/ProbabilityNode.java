@@ -57,7 +57,6 @@ public class ProbabilityNode {
 	ProbabilityNode parent;
 	ProbabilityNode[] children;
 	ProbabilityTree tree;
-	private boolean m_BackOff;
 
 	public ProbabilityNode(ProbabilityTree probabilityTree, int varNumberForBanchingChildren) {
 		this(probabilityTree, varNumberForBanchingChildren, false);
@@ -599,7 +598,7 @@ public class ProbabilityNode {
 		}
 	}
 
-	public void convertCountToProbsBackOff() {
+	public void convertCountToProbsBackOff(boolean m_BackOff) {
 		
 		pkAveraged = new double[nk.length];
 		if(MathUtils.sum(nk) != 0){
@@ -607,7 +606,8 @@ public class ProbabilityNode {
 				pkAveraged[i] = MathUtils.MEsti(nk[i], marginal_nk, nk.length);
 			}
 		}else{
-			if(this.m_BackOff){
+			if(m_BackOff){
+				// Here, this.parent is never null because sum(nk) is never 0 for the root
 				pkAveraged = this.parent.pkAveraged;
 			}else{
 				for(int i = 0; i < nk.length; i++){
@@ -619,23 +619,12 @@ public class ProbabilityNode {
 		if(children != null){
 			for(int i = 0; i < children.length; i++){
 				if(children[i] != null){
-					children[i].convertCountToProbsBackOff();
+					children[i].convertCountToProbsBackOff(m_BackOff);
 				}
 			}
 		}
 	}
 
-	public void setBackOff(boolean back) {
-		this.m_BackOff = back;
-		
-		if(children != null){
-			for(int i = 0; i < children.length; i++){
-				if(children[i] != null){
-					children[i].setBackOff(back);
-				}
-			}
-		}
-	}
 	// --- --- --- END OF Penny addition for MEstimation
 	
 	/**
