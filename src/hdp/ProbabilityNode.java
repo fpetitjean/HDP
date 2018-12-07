@@ -1,12 +1,12 @@
-package monash.ml.hdp;
+package hdp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
 
-import monash.ml.hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
-import monash.ml.tools.MathUtils;
+import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
+import mltools.MathUtils;
 
 public class ProbabilityNode {
 

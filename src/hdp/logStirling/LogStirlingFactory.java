@@ -1,6 +1,6 @@
-package monash.ml.hdp.logStirling;
+package hdp.logStirling;
 
-import monash.ml.hdp.logStirling.cache.DynCache;
+import hdp.logStirling.cache.DynCache;
 
 /** Helper class to easily create a Log Stirling Generator */
 public class LogStirlingFactory {

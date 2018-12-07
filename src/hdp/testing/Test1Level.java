@@ -1,4 +1,4 @@
-package monash.ml.hdp.testing;
+package hdp.testing;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
 
-import monash.ml.hdp.ProbabilityTree;
+import hdp.ProbabilityTree;
 
 public class Test1Level {
 

@@ -2,7 +2,7 @@
 	
 	<!-- Properties -->
 	<property name="src" 	location="src"/>
-	<property name="out" 	location="out"/>
+	<property name="bin" 	location="bin"/>
 	<property name="dist" 	location="dist"/>
 	<property name="lib" 	location="lib"/>
 	
@@ -14,25 +14,25 @@
 	
 	<!-- # Cleaning -->
 	<target name="clean">
-		<delete dir="${out}" />
+		<delete dir="${bin}" />
 		<delete dir="${dist}" />
 	</target> 
 	
 	<!-- # Initialisation -->
 	<target name="init" depends="clean">
-		<mkdir dir="${out}" />
+		<mkdir dir="${bin}" />
 		<mkdir dir="${dist}" />
 	</target>
 	
 	<!-- # Compilation -->
 	<target name="compile" depends="init">
 		<tstamp/>
-		<javac srcdir="${src}" destdir="${out}" classpathref="classpath" includeantruntime="false"/>
+		<javac srcdir="${src}" destdir="${bin}" classpathref="classpath" includeantruntime="false"/>
 	</target>
 	
 	<!-- # Jar creation -->
 	<target name="mkjar" depends="compile">
-		<jar destfile="${dist}/${ant.project.name}.jar" basedir="${out}">
+		<jar destfile="${dist}/${ant.project.name}.jar" basedir="${bin}">
 		</jar>
 	</target>
 	

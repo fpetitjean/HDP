@@ -1,8 +1,8 @@
-package monash.ml.hdp.logStirling.cache;
+package hdp.logStirling.cache;
 
 import java.util.ArrayList;
 
-import monash.ml.hdp.logStirling.LogStirlingGenerator;
+import hdp.logStirling.LogStirlingGenerator;
 
 public class DynCache implements LogStirlingGenerator.MainCache {
 

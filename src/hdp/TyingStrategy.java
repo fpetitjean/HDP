@@ -1,4 +1,4 @@
-package monash.ml.hdp;
+package hdp;
 
 /**
  * Represents different tying strategies for parameters of the PYP process

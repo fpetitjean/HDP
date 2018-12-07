@@ -31,7 +31,7 @@ When using this repository, please cite:
 After cloning the repo, launch the following commands.
 ```
 ant
-java -Xmx1g -cp "bin:lib/*:lib/commons-math3-3.6.1/*"  monash.ml.hdp.testing.Test2LevelsExampleHeartAttack
+java -Xmx1g -cp "bin:lib/*:lib/commons-math3-3.6.1/*"  hdp.testing.Test2LevelsExampleHeartAttack
 ```
 This will run a simple example with a small toy dataset and then learning the probability distribution.
 

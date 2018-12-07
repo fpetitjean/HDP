@@ -1,4 +1,4 @@
-package monash.ml.hdp;
+package hdp;
 
 import java.util.ArrayList;
 
@@ -7,7 +7,7 @@ import org.apache.commons.math3.distribution.GammaDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.FastMath;
 
-import static monash.ml.tools.MathUtils.*;
+import static mltools.MathUtils.*;
 
 public class Concentration {
 	private double priorRate = 1.0;
