@@ -1,4 +1,4 @@
-package hdp;
+package monash.ml.hdp;
 
 import java.util.ArrayList;
 
@@ -6,6 +6,8 @@ import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.GammaDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.FastMath;
+
+import static monash.ml.tools.MathUtils.*;
 
 public class Concentration {
 	private double priorRate = 1.0;
@@ -126,5 +128,29 @@ public class Concentration {
 
 	public String toString() {
 		return "" + c;
+	}
+	
+	
+	
+	/***
+	 * compute log((c|d)_T)
+	 * 
+	 * @param c
+	 * @param N
+	 * @param d
+	 * @return
+	 */
+
+	public static double logPochhammerSymbol(Concentration c, double d, int N) {
+
+		double lps = 0.0;
+
+		if (d == 0) {
+			lps = N * c.getLogConcentration();
+		} else {
+			lps = N * FastMath.log(d) + logGammaRatio(c.getConcentration() / d, N);
+		}
+
+		return lps;
 	}
 }

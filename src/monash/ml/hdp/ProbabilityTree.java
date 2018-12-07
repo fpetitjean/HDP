@@ -1,4 +1,4 @@
-package hdp;
+package monash.ml.hdp;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -10,10 +10,10 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.util.FastMath;
 
-import hdp.logStirling.LogStirlingFactory;
-import hdp.logStirling.LogStirlingGenerator;
-import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
-import hdp.tools.MathUtils;
+import monash.ml.hdp.logStirling.LogStirlingFactory;
+import monash.ml.hdp.logStirling.LogStirlingGenerator;
+import monash.ml.hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
+import monash.ml.tools.MathUtils;
 
 public class ProbabilityTree {
 

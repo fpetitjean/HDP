@@ -1,12 +1,12 @@
-package hdp;
+package monash.ml.hdp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
 
-import hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
-import hdp.tools.MathUtils;
+import monash.ml.hdp.logStirling.LogStirlingGenerator.CacheExtensionException;
+import monash.ml.tools.MathUtils;
 
 public class ProbabilityNode {
 
@@ -203,7 +203,7 @@ public class ProbabilityNode {
 	 */
 	public double logScoreSubTree() {
 		double res = 0.0;
-		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
+		res += Concentration.logPochhammerSymbol(c, 0.0, marginal_tk);
 		res -= c.logGammaRatioForConcentration(marginal_nk);
 
 		// Now nks are set for current node; let's initialize the tks
@@ -350,7 +350,7 @@ public class ProbabilityNode {
 			System.exit(1);
 		}
 
-		res += MathUtils.logPochhammerSymbol(c, 0.0, marginal_tk);
+		res += Concentration.logPochhammerSymbol(c, 0.0, marginal_tk);
 
 		// partial score difference for parent
 		if (parent != null) {

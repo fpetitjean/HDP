@@ -1,7 +1,7 @@
-package hdp.testing;
+package monash.ml.hdp.testing;
 
-import hdp.ProbabilityTree;
-import hdp.TyingStrategy;
+import monash.ml.hdp.ProbabilityTree;
+import monash.ml.hdp.TyingStrategy;
 
 public class Test2LevelMLPaperMain {
 	

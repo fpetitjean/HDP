@@ -1,6 +1,6 @@
-package hdp.testing;
+package monash.ml.hdp.testing;
 
-import hdp.ProbabilityTree;
+import monash.ml.hdp.ProbabilityTree;
 import java.util.Arrays;
 
 public class Test2LevelsExampleHeartAttack {

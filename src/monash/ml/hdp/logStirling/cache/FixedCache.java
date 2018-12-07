@@ -1,7 +1,7 @@
-package hdp.logStirling.cache;
+package monash.ml.hdp.logStirling.cache;
 
-import hdp.logStirling.LogStirlingGenerator;
-import hdp.logStirling.unsafeArray.FloatArray;
+import monash.ml.hdp.logStirling.LogStirlingGenerator;
+import monash.ml.tools.unsafeArray.FloatArray;
 
 /*
  * By convention: (0,0) map to the index 0
