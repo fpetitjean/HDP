@@ -258,6 +258,30 @@ When using this repository, please cite:
 }
 ```
 
+## Future work: Pitman-Yor Process support
+
+The codebase is architecturally close to supporting the **Pitman-Yor Process** (PYP), a generalization of the Dirichlet Process that adds a *discount parameter* `d` (0 <= d < 1). Where the DP smoothing formula is:
+
+> p_k = n_k / (N + c) + c / (N + c) * parent_k
+
+the PYP formula becomes:
+
+> p_k = (n_k - d * t_k) / (N + c) + (c + d * T) / (N + c) * parent_k
+
+The discount takes a little mass from every observed category — proportionally more from rare ones — and redistributes it toward the parent. This produces **power-law tails** instead of the exponential tails of the DP, which better captures distributions with many rare categories (e.g., word frequencies, product catalogs, species counts).
+
+For the typical Bayesian Network use case with small categorical variables (a handful of states each), the DP (`d=0`) is the right choice — there is no long tail to model. The PYP becomes interesting when the target or conditioning variables have **hundreds or thousands of possible values**, especially in open-ended vocabularies where genuinely unseen categories are expected.
+
+### What's already in place
+
+The hardest part — computing **generalized Stirling numbers** S_d(n, k) for arbitrary d — is fully implemented in `LogStirlingGenerator`. The `logPochhammerSymbol` function also already handles d > 0. The remaining work is plumbing:
+
+1. Store `d` as a field (on `Concentration` or `ProbabilityTree`)
+2. Replace the six hardcoded `0.0` discount values in `ProbabilityNode` with that field
+3. Add the `d * t_k` terms to `computeProbabilities()`
+
+This would be enough to support PYP with a **fixed discount** (set by the user, not learned). Sampling `d` from its posterior would require an additional Metropolis-Hastings step, but a fixed `d` is a reasonable starting point — in practice, values around 0.2-0.5 work well for many power-law distributed datasets.
+
 ## Contributors
 
 Original research and code by:
