@@ -88,7 +88,7 @@ public class Concentration {
 			return;
 
 		this.c = flooredC;
-		this.logC = FastMath.log(c);
+		this.logC = FastMath.log(this.c);
 		computeLogGammaRatioCache();
 	}
 
