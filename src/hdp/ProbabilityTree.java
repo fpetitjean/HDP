@@ -69,6 +69,7 @@ public class ProbabilityTree {
 
 	public ProbabilityTree(int nValuesConditionedVariable, int[] nValuesConditioningVariables, int m_Iterations,
 			int m_Tying) {
+		setConcentrationTyingStrategy(m_Tying);
 		init(nValuesConditionedVariable, nValuesConditioningVariables, false, m_Iterations,
 				this.concentrationTyingStrategy, 5, true);
 	}
