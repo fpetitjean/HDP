@@ -47,8 +47,15 @@ public class ProbabilityTree {
 		init(-1, null, createFullTree, 5000, TyingStrategy.LEVEL, 5, false);
 	}
 
-	public ProbabilityTree(int m_Iterations, TyingStrategy m_Tying) {
+	public ProbabilityTree(TyingStrategy m_Tying) {
 		init(-1, null, false, 5000, m_Tying, 5, false);
+	}
+
+	/**
+	 * @param m_Iterations number of Gibbs sampling iterations (recommended default: 5000)
+	 */
+	public ProbabilityTree(int m_Iterations, TyingStrategy m_Tying) {
+		init(-1, null, false, m_Iterations, m_Tying, 5, false);
 	}
 
 	public ProbabilityTree(boolean createFullTree, int m_Iterations, TyingStrategy m_Tying, int frequencySamplingC) {
